@@ -1,55 +1,57 @@
-import { _decorator, Component, Vec2, Vec3, tween, Node, macro, EventKeyboard, SystemEventType, systemEvent, EventMouse } from 'cc';
+import { _decorator, Component, Vec2, Vec3, tween, Node, macro, EventKeyboard, SystemEventType, systemEvent, 
+    EventMouse, RigidBody2D, Collider2D, BoxCollider2D, Contact2DType, IPhysics2DContact } from 'cc';
+import { CC_Helper } from './common';
 
 const { ccclass, property } = _decorator;
 
 enum eMoveDirection
 {
-    UP = 0,
-    RIGHT = 1,
-    DOWN = 2,
-    LEFT = 3,
+    RIGHT = 0,
+    LEFT = 2
 };
 
 @ccclass('Player')
 export class Player extends Component {
     
     @property
-    jumpHeight:number = 0;
-
-    @property
-    jumpDuration:number = 0;
-
-    @property
-    maxMovementSpeed:number = 0;
+    jumpImpulse:number = 0;
 
     @property
     acceleration:number = 0;
 
-    private moveDirections : Set<eMoveDirection> = new Set<eMoveDirection>();
+    @property
+    velocityMaxX:number = 0;
+
+    private walkForce:number = 15000;
+    private moveDirections = new Set<eMoveDirection>();
+    private onTheGround:boolean = false;
 
     onLoad ()
     {
-
+    
     }
 
     start () 
     {
         systemEvent.on(SystemEventType.KEY_DOWN, this.onKeyDown, this);
         systemEvent.on(SystemEventType.KEY_UP, this.onKeyUp, this);
-        systemEvent.on(SystemEventType.MOUSE_DOWN, this.onMouseDown, this);
+
+        var colliders = this.getComponents(BoxCollider2D);
+
+        colliders.forEach(element => 
+        {
+            if(null != element)
+            {
+                element.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+            }
+        });   
     }
 
-    onMouseDown(event: EventMouse)
+    onBeginContact (selfCollider:Collider2D, otherCollider:Collider2D, contact:IPhysics2DContact) 
     {
-        switch(event.getButton())
+        if(selfCollider.tag == 1)
         {
-            case EventMouse.BUTTON_LEFT:
-                tween(this.node)
-                .to(this.jumpDuration, { position : new Vec3(this.node.position.x, this.node.position.y + this.jumpHeight, this.node.position.z) })
-                .to(this.jumpDuration, { position : new Vec3(this.node.position.x, this.node.position.y, this.node.position.z) })
-                .union()
-                .start();
-                break;
+            this.onTheGround = true;
         }
     }
 
@@ -58,20 +60,25 @@ export class Player extends Component {
         switch(event.keyCode)
         {
             case macro.KEY.a:
-                console.log("a->down");
+            case macro.KEY.left:
                 this.moveDirections.add(eMoveDirection.LEFT);
                 break;
-            case macro.KEY.s:
-                console.log("s->down");
-                this.moveDirections.add(eMoveDirection.DOWN);
-                break;
             case macro.KEY.d:
-                console.log("d->down");
+            case macro.KEY.right:
                 this.moveDirections.add(eMoveDirection.RIGHT);
                 break;
-            case macro.KEY.w:
-                console.log("w->down");
-                this.moveDirections.add(eMoveDirection.UP);
+            case macro.KEY.space:
+                var rigidBody = this.getComponent(RigidBody2D);
+
+                if(rigidBody != null)
+                {    
+                    if(true == this.onTheGround)
+                    {
+                        rigidBody.applyForceToCenter( new Vec2(0, this.jumpImpulse * this.walkForce), true );
+                        this.onTheGround = false;
+                    }
+                }
+
                 break;
         }
     }
@@ -81,25 +88,17 @@ export class Player extends Component {
         switch(event.keyCode) 
         {
             case macro.KEY.a:
-                console.log("a->up");
+            case macro.KEY.left:
                 this.moveDirections.delete(eMoveDirection.LEFT);
                 break;
-            case macro.KEY.s:
-                console.log("s->up");
-                this.moveDirections.delete(eMoveDirection.DOWN);
-                break;
             case macro.KEY.d:
-                console.log("d->up");
+            case macro.KEY.right:
                 this.moveDirections.delete(eMoveDirection.RIGHT);
-                break;
-            case macro.KEY.w:
-                console.log("w->up");
-                this.moveDirections.delete(eMoveDirection.UP);
                 break;
         }
     }
     
-    update (deltaTime:number)
+    getMovementVec() : Vec3
     {
         var movementVec = new Vec3();
 
@@ -108,22 +107,32 @@ export class Player extends Component {
             switch(element) 
             {
             case eMoveDirection.LEFT:
-                movementVec.x -= this.acceleration * deltaTime;
-                break;
-            case eMoveDirection.DOWN:
-                movementVec.y -= this.acceleration * deltaTime;
+                movementVec.x -= this.acceleration * this.walkForce;
                 break;
             case eMoveDirection.RIGHT:
-                movementVec.x += this.acceleration * deltaTime;
-                break;
-            case eMoveDirection.UP:
-                movementVec.y += this.acceleration * deltaTime;
+                movementVec.x += this.acceleration * this.walkForce;
                 break;
             }
         });
 
-        var currentPos = this.node.position; 
-        var targetPos = currentPos.add(movementVec);
-        this.node.setPosition( targetPos.x, targetPos.y );
+        return movementVec;
+    }
+
+    update (deltaTime:number)
+    {
+        var rigidBody = this.getComponent(RigidBody2D);
+
+        if(rigidBody != null)
+        {
+            if( 0 != this.moveDirections.size 
+                && ( rigidBody.linearVelocity.x < this.velocityMaxX ||
+                rigidBody.linearVelocity.x > -this.velocityMaxX) )
+            {
+                var movementVec = this.getMovementVec();
+                movementVec.x *= deltaTime;
+                movementVec.y *= deltaTime;
+                rigidBody.applyForceToCenter( CC_Helper.toVec2(movementVec), true );
+            }
+        }
     }
 }

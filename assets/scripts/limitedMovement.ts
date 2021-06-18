@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, UITransform, Camera, renderer, Canvas, Game, game } from 'cc';
+import { _decorator, Component, Node, UITransform, Camera, renderer, Canvas, Game, game, RigidBody2D, Vec3, Vec2 } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('LimitedMovement')
@@ -27,25 +27,51 @@ export class LimitedMovement extends Component
                 var minY = ( this.limitingObject.position.y - limitingUITransform.height / 2 ) + ( boundingBox.height / 2 );
                 var maxY = ( this.limitingObject.position.y + limitingUITransform.height / 2 ) - ( boundingBox.height / 2 );
 
+                var positionXAdjusted = false;
+
                 if(currentPosition.x >= maxX)
                 {
+                    positionXAdjusted = true;
                     currentPosition.x = maxX;
                 }
                 else if(currentPosition.x <= minX)
                 {
+                    positionXAdjusted = true;
                     currentPosition.x = minX;
                 }
                 
+                var positionYAdjusted = false;
+
                 if(currentPosition.y >= maxY)
                 {
+                    positionYAdjusted = true;
                     currentPosition.y = maxY;
                 }
                 else if(currentPosition.y <= minY)
                 {
+                    positionYAdjusted = true;
                     currentPosition.y = minY;
                 }
 
                 this.node.setPosition( currentPosition.x, currentPosition.y );
+
+                var rigidBody = this.getComponent(RigidBody2D);
+
+                if(rigidBody != null)
+                {
+                    if(true == positionXAdjusted && false == positionYAdjusted)
+                    {
+                        rigidBody.linearVelocity = new Vec2(0, rigidBody.linearVelocity.y);
+                    }
+                    if(false == positionXAdjusted && true == positionYAdjusted)
+                    {
+                        rigidBody.linearVelocity = new Vec2(rigidBody.linearVelocity.x, 0);
+                    }
+                    if(true == positionXAdjusted && true == positionYAdjusted)
+                    {
+                        rigidBody.linearVelocity = new Vec2(0, 0);
+                    }
+                }
             }
         }
         else
@@ -70,8 +96,6 @@ export class LimitedMovement extends Component
                         var maxX = ( this.limitingObject.position.x + limitingUITransform.width / 2 ) - ( orthoWidth );
                         var minY = ( this.limitingObject.position.y - limitingUITransform.height / 2 ) + ( orthoHeight );
                         var maxY = ( this.limitingObject.position.y + limitingUITransform.height / 2 ) - ( orthoHeight );
-
-                        console.log("minX - ", minX, "minY - ", minY, "maxX - ", maxX, "maxY - ", maxY);
 
                         if(currentPosition.x >= maxX)
                         {
