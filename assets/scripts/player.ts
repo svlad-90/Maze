@@ -122,6 +122,8 @@ export class Player extends Component {
             }
         });
 
-        this.node.position = this.node.position.add( movementVec );
+        var currentPos = this.node.position; 
+        var targetPos = currentPos.add(movementVec);
+        this.node.setPosition( targetPos.x, targetPos.y );
     }
 }
