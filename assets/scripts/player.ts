@@ -1,6 +1,7 @@
 import { _decorator, Component, Vec2, Vec3, tween, Node, macro, EventKeyboard, SystemEventType, systemEvent, 
-    EventMouse, RigidBody2D, Collider2D, BoxCollider2D, Contact2DType, IPhysics2DContact } from 'cc';
+    EventMouse, RigidBody2D, Collider2D, BoxCollider2D, Contact2DType, IPhysics2DContact, sp } from 'cc';
 import { CC_Helper } from './common';
+import { TrackEntry } from "./spine/spine-core"
 
 const { ccclass, property } = _decorator;
 
@@ -22,9 +23,11 @@ export class Player extends Component {
     @property
     velocityMaxX:number = 0;
 
-    private walkForce:number = 15000;
+    private walkForce:number = 1000;
     private moveDirections = new Set<eMoveDirection>();
-    private onTheGround:boolean = false;
+    private onTheGround:boolean = true;
+    private currentMoveDirection:eMoveDirection = eMoveDirection.RIGHT;
+    private jumpInProgress:boolean = false;
 
     onLoad ()
     {
@@ -61,11 +64,47 @@ export class Player extends Component {
         {
             case macro.KEY.a:
             case macro.KEY.left:
-                this.moveDirections.add(eMoveDirection.LEFT);
+
+                if(!this.moveDirections.has(eMoveDirection.LEFT))
+                {
+                    this.moveDirections.add(eMoveDirection.LEFT);
+
+                    var spineComp = this.getComponent(sp.Skeleton);
+
+                    if(spineComp != null && this.jumpInProgress == false)
+                    {
+                        spineComp.setAnimation(0, "run", true);
+                    }
+
+                    if(this.currentMoveDirection != eMoveDirection.LEFT)
+                    {
+                        this.node.setScale(-this.node.scale.x, this.node.scale.y, this.node.scale.z);
+                        this.currentMoveDirection = eMoveDirection.LEFT;
+                    }
+                }
+
                 break;
             case macro.KEY.d:
             case macro.KEY.right:
-                this.moveDirections.add(eMoveDirection.RIGHT);
+
+                if(!this.moveDirections.has(eMoveDirection.RIGHT))
+                {
+                    this.moveDirections.add(eMoveDirection.RIGHT);
+
+                    var spineComp = this.getComponent(sp.Skeleton);
+
+                    if(spineComp != null && this.jumpInProgress == false)
+                    {
+                        spineComp.setAnimation(0, "run", true);
+                    }
+
+                    if(this.currentMoveDirection != eMoveDirection.RIGHT)
+                    {
+                        this.node.setScale(-this.node.scale.x, this.node.scale.y, this.node.scale.z);
+                        this.currentMoveDirection = eMoveDirection.RIGHT;
+                    }
+                }
+
                 break;
             case macro.KEY.space:
                 var rigidBody = this.getComponent(RigidBody2D);
@@ -74,8 +113,34 @@ export class Player extends Component {
                 {    
                     if(true == this.onTheGround)
                     {
+                        this.jumpInProgress = true;
+
                         rigidBody.applyForceToCenter( new Vec2(0, this.jumpImpulse * this.walkForce), true );
-                        this.onTheGround = false;
+                        //this.onTheGround = false;
+
+                        var spineComp = this.getComponent(sp.Skeleton);
+
+                        if(spineComp != null)
+                        {
+                            spineComp.setAnimation(0, "jump", false);
+
+                            let onAnimationComplete = (x: spine.TrackEntry): void => 
+                            {
+                                if(x.animation.name == "jump")
+                                {
+                                    this.jumpInProgress = false;
+
+                                    var spineComp = this.getComponent(sp.Skeleton);
+                            
+                                    if(spineComp != null)
+                                    {
+                                        spineComp.setAnimation(0, "idle", true);
+                                    }
+                                }
+                            };
+
+                            spineComp.setCompleteListener(onAnimationComplete);
+                        }
                     }
                 }
 
@@ -95,6 +160,16 @@ export class Player extends Component {
             case macro.KEY.right:
                 this.moveDirections.delete(eMoveDirection.RIGHT);
                 break;
+        }
+
+        if(0 == this.moveDirections.size && false == this.jumpInProgress)
+        {
+            var spineComp = this.getComponent(sp.Skeleton);
+
+            if(spineComp != null)
+            {
+                spineComp.setAnimation(0, "idle", true);
+            }
         }
     }
     
