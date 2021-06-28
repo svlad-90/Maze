@@ -1,0 +1,104 @@
+
+character.png
+size: 1536,260
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Body
+  rotate: true
+  xy: 2, 10
+  size: 248, 415
+  orig: 248, 415
+  offset: 0, 0
+  index: -1
+Brush_left
+  rotate: false
+  xy: 419, 60
+  size: 288, 198
+  orig: 288, 198
+  offset: 0, 0
+  index: -1
+Brush_right
+  rotate: false
+  xy: 709, 60
+  size: 288, 198
+  orig: 288, 198
+  offset: 0, 0
+  index: -1
+Foot_left
+  rotate: false
+  xy: 1235, 2
+  size: 99, 65
+  orig: 99, 65
+  offset: 0, 0
+  index: -1
+Foot_right
+  rotate: false
+  xy: 1336, 2
+  size: 99, 65
+  orig: 99, 65
+  offset: 0, 0
+  index: -1
+Forearm_left
+  rotate: false
+  xy: 810, 9
+  size: 171, 49
+  orig: 172, 50
+  offset: 1, 0
+  index: -1
+Forearm_right
+  rotate: false
+  xy: 983, 4
+  size: 171, 50
+  orig: 172, 50
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 999, 56
+  size: 234, 202
+  orig: 234, 203
+  offset: 0, 1
+  index: -1
+Leg_left
+  rotate: false
+  xy: 1463, 48
+  size: 71, 210
+  orig: 71, 211
+  offset: 0, 1
+  index: -1
+Leg_right
+  rotate: true
+  xy: 1235, 69
+  size: 71, 211
+  orig: 71, 211
+  offset: 0, 0
+  index: -1
+Shin_left
+  rotate: true
+  xy: 1235, 201
+  size: 57, 226
+  orig: 57, 226
+  offset: 0, 0
+  index: -1
+Shin_right
+  rotate: true
+  xy: 1235, 142
+  size: 57, 226
+  orig: 57, 226
+  offset: 0, 0
+  index: -1
+Shoulder_left
+  rotate: false
+  xy: 615, 10
+  size: 193, 48
+  orig: 194, 48
+  offset: 1, 0
+  index: -1
+Shoulder_right
+  rotate: false
+  xy: 419, 10
+  size: 194, 48
+  orig: 194, 48
+  offset: 0, 0
+  index: -1

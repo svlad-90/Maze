@@ -20,10 +20,10 @@ export class LimitedMovement extends Component
             {
                 var currentPosition = this.node.position.clone();
 
-                var minX = ( this.limitingObject.position.x - limitingUITransform.width / 2 ) + ( myUITransform.width * this.node.scale.x / 2 );
-                var maxX = ( this.limitingObject.position.x + limitingUITransform.width / 2 ) - ( myUITransform.width * this.node.scale.x / 2 );
-                var minY = ( this.limitingObject.position.y - limitingUITransform.height / 2 ) + ( myUITransform.height * this.node.scale.y / 2 );
-                var maxY = ( this.limitingObject.position.y + limitingUITransform.height / 2 ) - ( myUITransform.height * this.node.scale.y / 2 );
+                var minX = ( this.limitingObject.position.x - ( limitingUITransform.width * this.limitingObject.scale.x / 2 ) ) + ( myUITransform.width * this.node.scale.x / 2 );
+                var maxX = ( this.limitingObject.position.x + ( limitingUITransform.width * this.limitingObject.scale.x / 2 ) ) - ( myUITransform.width * this.node.scale.x / 2 );
+                var minY = ( this.limitingObject.position.y - ( limitingUITransform.height * this.limitingObject.scale.y / 2 ) ) + ( myUITransform.height * this.node.scale.y / 2 );
+                var maxY = ( this.limitingObject.position.y + ( limitingUITransform.height * this.limitingObject.scale.y / 2 ) ) - ( myUITransform.height * this.node.scale.y / 2 );
 
                 var positionXAdjusted = false;
 

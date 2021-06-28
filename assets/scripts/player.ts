@@ -1,37 +1,57 @@
 import { _decorator, Component, Vec2, Vec3, tween, Node, macro, EventKeyboard, SystemEventType, systemEvent, 
-    EventMouse, RigidBody2D, Collider2D, BoxCollider2D, Contact2DType, IPhysics2DContact, sp } from 'cc';
+    EventMouse, RigidBody2D, Collider2D, BoxCollider2D, Contact2DType, IPhysics2DContact, sp, UITransform, Director, misc, find, Camera, Canvas, Scene } from 'cc';
 import { CC_Helper } from './common';
-import { TrackEntry } from "./spine/spine-core"
 
 const { ccclass, property } = _decorator;
 
 enum eMoveDirection
 {
     RIGHT = 0,
-    LEFT = 2
+    LEFT = 1,
+    UP = 2,
+    DOWN = 3
 };
 
 @ccclass('Player')
 export class Player extends Component {
-    
-    @property
-    jumpImpulse:number = 0;
 
     @property
     acceleration:number = 0;
 
     @property
-    velocityMaxX:number = 0;
+    velocityMax:number = 0;
 
-    private walkForce:number = 1000;
+    @property
+    eyesDirection:Vec2 = new Vec2(0,1);
+
+    private walkForce:number = 300;
     private moveDirections = new Set<eMoveDirection>();
     private onTheGround:boolean = true;
     private currentMoveDirection:eMoveDirection = eMoveDirection.RIGHT;
-    private jumpInProgress:boolean = false;
+    private mousePos:Vec3 = new Vec3();
+    private canvas:Canvas|null = null;
+    private camera:Camera|null = null;
 
     onLoad ()
     {
-    
+        var scene:Scene|null = Director.instance.getScene();
+
+        if(null != scene)
+        {
+            var canvasNode = scene.getChildByName("Canvas");
+
+            if(null != canvasNode)
+            {
+                this.canvas = canvasNode.getComponent(Canvas);
+
+                if(null != this.canvas)
+                {
+                    this.camera = this.canvas.cameraComponent;
+                }
+            }
+        }
+
+        var UITransformComp = this.node.getComponent(UITransform);
     }
 
     start () 
@@ -48,6 +68,22 @@ export class Player extends Component {
                 element.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
             }
         });   
+
+        var spineComp = this.getComponent(sp.Skeleton);
+                            
+        if(spineComp != null)
+        {
+            spineComp.setAnimation(0, "idle", true);
+        }
+
+        systemEvent.on(SystemEventType.MOUSE_MOVE, this.onMouseMove, this);
+    }
+
+    onMouseMove(event: EventMouse)
+    {
+        var screenLocation = event.getLocation();
+        this.mousePos.x = screenLocation.x;
+        this.mousePos.y = screenLocation.y;
     }
 
     onBeginContact (selfCollider:Collider2D, otherCollider:Collider2D, contact:IPhysics2DContact) 
@@ -60,91 +96,61 @@ export class Player extends Component {
 
     onKeyDown (event: EventKeyboard) 
     {
+        var applyLogic:boolean = false;
+        var identifiedDirection:eMoveDirection = eMoveDirection.DOWN;
+
         switch(event.keyCode)
         {
             case macro.KEY.a:
             case macro.KEY.left:
-
                 if(!this.moveDirections.has(eMoveDirection.LEFT))
                 {
-                    this.moveDirections.add(eMoveDirection.LEFT);
-
-                    var spineComp = this.getComponent(sp.Skeleton);
-
-                    if(spineComp != null && this.jumpInProgress == false)
-                    {
-                        spineComp.setAnimation(0, "run", true);
-                    }
-
-                    if(this.currentMoveDirection != eMoveDirection.LEFT)
-                    {
-                        this.node.setScale(-this.node.scale.x, this.node.scale.y, this.node.scale.z);
-                        this.currentMoveDirection = eMoveDirection.LEFT;
-                    }
+                    applyLogic = true;
+                    identifiedDirection = eMoveDirection.LEFT;
                 }
-
                 break;
             case macro.KEY.d:
             case macro.KEY.right:
-
                 if(!this.moveDirections.has(eMoveDirection.RIGHT))
                 {
-                    this.moveDirections.add(eMoveDirection.RIGHT);
-
-                    var spineComp = this.getComponent(sp.Skeleton);
-
-                    if(spineComp != null && this.jumpInProgress == false)
-                    {
-                        spineComp.setAnimation(0, "run", true);
-                    }
-
-                    if(this.currentMoveDirection != eMoveDirection.RIGHT)
-                    {
-                        this.node.setScale(-this.node.scale.x, this.node.scale.y, this.node.scale.z);
-                        this.currentMoveDirection = eMoveDirection.RIGHT;
-                    }
+                    applyLogic = true;
+                    identifiedDirection = eMoveDirection.RIGHT;
                 }
-
                 break;
-            case macro.KEY.space:
-                var rigidBody = this.getComponent(RigidBody2D);
 
-                if(rigidBody != null)
-                {    
-                    if(true == this.onTheGround)
-                    {
-                        this.jumpInProgress = true;
-
-                        rigidBody.applyForceToCenter( new Vec2(0, this.jumpImpulse * this.walkForce), true );
-                        //this.onTheGround = false;
-
-                        var spineComp = this.getComponent(sp.Skeleton);
-
-                        if(spineComp != null)
-                        {
-                            spineComp.setAnimation(0, "jump", false);
-
-                            let onAnimationComplete = (x: spine.TrackEntry): void => 
-                            {
-                                if(x.animation.name == "jump")
-                                {
-                                    this.jumpInProgress = false;
-
-                                    var spineComp = this.getComponent(sp.Skeleton);
-                            
-                                    if(spineComp != null)
-                                    {
-                                        spineComp.setAnimation(0, "idle", true);
-                                    }
-                                }
-                            };
-
-                            spineComp.setCompleteListener(onAnimationComplete);
-                        }
-                    }
+            case macro.KEY.w:
+            case macro.KEY.up:
+                if(!this.moveDirections.has(eMoveDirection.UP))
+                {
+                    applyLogic = true;
+                    identifiedDirection = eMoveDirection.UP;
                 }
-
                 break;
+            case macro.KEY.s:
+            case macro.KEY.down:
+                if(!this.moveDirections.has(eMoveDirection.DOWN))
+                {
+                    applyLogic = true;
+                    identifiedDirection = eMoveDirection.DOWN;
+                }
+                break;
+        }
+
+        if(true == applyLogic)
+        {
+            this.moveDirections.add(identifiedDirection);
+
+            var spineComp = this.getComponent(sp.Skeleton);
+
+            if(spineComp != null)
+            {
+                spineComp.setAnimation(0, "run", true);
+            }
+
+            if(this.currentMoveDirection != identifiedDirection)
+            {
+                this.currentMoveDirection = identifiedDirection;
+            }
         }
     }
 
@@ -160,9 +166,17 @@ export class Player extends Component {
             case macro.KEY.right:
                 this.moveDirections.delete(eMoveDirection.RIGHT);
                 break;
+            case macro.KEY.w:
+            case macro.KEY.up:
+                this.moveDirections.delete(eMoveDirection.UP);
+                break;
+            case macro.KEY.s:
+            case macro.KEY.down:
+                this.moveDirections.delete(eMoveDirection.DOWN);
+                break;
         }
 
-        if(0 == this.moveDirections.size && false == this.jumpInProgress)
+        if(0 == this.moveDirections.size)
         {
             var spineComp = this.getComponent(sp.Skeleton);
 
@@ -187,6 +201,12 @@ export class Player extends Component {
             case eMoveDirection.RIGHT:
                 movementVec.x += this.acceleration * this.walkForce;
                 break;
+            case eMoveDirection.UP:
+                movementVec.y += this.acceleration * this.walkForce;
+                break;
+            case eMoveDirection.DOWN:
+                movementVec.y -= this.acceleration * this.walkForce;
+                break;
             }
         });
 
@@ -199,15 +219,43 @@ export class Player extends Component {
 
         if(rigidBody != null)
         {
-            if( 0 != this.moveDirections.size 
-                && ( rigidBody.linearVelocity.x < this.velocityMaxX ||
-                rigidBody.linearVelocity.x > -this.velocityMaxX) )
+            if( 0 != this.moveDirections.size )
             {
-                var movementVec = this.getMovementVec();
-                movementVec.x *= deltaTime;
-                movementVec.y *= deltaTime;
-                rigidBody.applyForceToCenter( CC_Helper.toVec2(movementVec), true );
+                if( rigidBody.linearVelocity.x < this.velocityMax ||
+                rigidBody.linearVelocity.x > -this.velocityMax)
+                {
+                    var movementVec = this.getMovementVec();
+                    movementVec.x *= deltaTime;
+                    movementVec.y = 0;
+                    rigidBody.applyForceToCenter( CC_Helper.toVec2(movementVec), true );
+                }
+
+                if( rigidBody.linearVelocity.y < this.velocityMax ||
+                rigidBody.linearVelocity.y > -this.velocityMax)
+                {
+                    var movementVec = this.getMovementVec();
+                    movementVec.x = 0;
+                    movementVec.y *= deltaTime;
+                    rigidBody.applyForceToCenter( CC_Helper.toVec2(movementVec), true );
+                }
             }
+        }
+
+        if(null != this.camera)
+        {
+            var mousePosWorldCoord = this.camera.screenToWorld( this.mousePos );
+            var nodeWorldCoord = this.node.getWorldPosition();
+
+            var lookAtVec:Vec2 = new Vec2();
+
+            lookAtVec.x = mousePosWorldCoord.x - nodeWorldCoord.x;
+            lookAtVec.y = mousePosWorldCoord.y - nodeWorldCoord.y;
+
+            var andgleRad:number = this.eyesDirection.signAngle( lookAtVec );
+            var angleDeg:number = misc.radiansToDegrees(andgleRad);
+
+            this.node.setRotationFromEuler( 0, 0, angleDeg );
+            console.log("mouse pos <x - ", mousePosWorldCoord.x, "y - ", mousePosWorldCoord.y, ">; ", "player pos <x - ", nodeWorldCoord.x, "y - ", nodeWorldCoord.y, ">; ", "angle - ", angleDeg);
         }
     }
 }
