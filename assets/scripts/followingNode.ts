@@ -14,6 +14,9 @@ export class FollowingObject extends Component
     @property
     adjustmentY:number = 0;
 
+    @property
+    inheritRotation:boolean = false;
+
     update (deltaTime:number)
     {
         if(null != this.followedObject)
@@ -28,6 +31,11 @@ export class FollowingObject extends Component
                 var currentPosition = this.node.position.clone();
                 currentPosition.lerp( targetPosition, 0.1 );
                 this.node.setPosition( currentPosition.x, currentPosition.y );
+
+                if(true == this.inheritRotation)
+                {
+                    this.node.setRotation( this.followedObject.rotation );
+                }
             }
         }
     }
