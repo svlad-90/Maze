@@ -1,7 +1,7 @@
 
 import { Vec2, Vec3 } from 'cc';
 
-export namespace CC_Helper
+export namespace Maze_Common
 {
     export function toVec2(val:Vec3) : Vec2
     {

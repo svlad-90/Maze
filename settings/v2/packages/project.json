@@ -9,12 +9,17 @@
       {
         "index": 2,
         "name": "Walls"
+      },
+      {
+        "index": 3,
+        "name": "Bullet"
       }
     ],
     "collisionMatrix": {
       "0": 1,
-      "1": 6,
-      "2": 2
+      "1": 14,
+      "2": 2,
+      "3": 2
     }
   }
 }
