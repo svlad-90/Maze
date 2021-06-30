@@ -1,107 +1,109 @@
-import { _decorator, Component, Vec2, Vec3, tween, Node, macro, EventKeyboard, SystemEventType, systemEvent, 
-    EventMouse, RigidBody2D, Collider2D, BoxCollider2D, Contact2DType, IPhysics2DContact, sp, UITransform, Director, misc, find, Camera, Canvas, Scene, Quat, ConeCollider } from 'cc';
-import { CC_Helper } from './common';
-import { Maze } from './playerBase'
+import { _decorator, Vec3, RigidBody2D, Quat } from 'cc';
+import { Maze_Common } from './common';
+import { Maze_PlayerBase } from './playerBase'
 
-const { ccclass, property } = _decorator;
-
-@ccclass('PlayerTrain')
-export class PlayerTrain extends Maze.PlayerBase 
+export namespace Maze_PlayerTrain
 {
-    @property
-    rotationSpeed:number = 10;
+    const { ccclass, property } = _decorator;
 
-    onLoad ()
+    @ccclass('PlayerTrain')
+    export class PlayerTrain extends Maze_PlayerBase.PlayerBase 
     {
-        super.onLoad();
-    }
+        @property
+        rotationSpeed:number = 10;
 
-    start () 
-    {
-        super.start();
-    }
-
-    getMovementVec() : Vec3
-    {
-        var direction:Vec3 = new Vec3(0,0,0);
-
-        var movementVec = new Vec3();
-
-        this.moveDirections.forEach(element => 
+        public onLoad ()
         {
-            switch(element) 
-            {
-            case Maze.eMoveDirection.LEFT:
-                // do nothing
-                break;
-            case Maze.eMoveDirection.RIGHT:
-                // do nothing
-                break;
-            case Maze.eMoveDirection.UP:
-                var direction:Vec3 = this.direction;
-                movementVec.x += direction.x * this.acceleration * this.walkForce;
-                movementVec.y += direction.y * this.acceleration * this.walkForce;
-                break;
-            case Maze.eMoveDirection.DOWN:
-                var direction:Vec3 = this.direction;
-                movementVec.x -= direction.x * this.acceleration * this.walkForce;
-                movementVec.y -= direction.y * this.acceleration * this.walkForce;
-                break;
-            }
-        });
-
-        return movementVec;
-    }
-
-    update (deltaTime:number)
-    {
-        var rigidBody = this.getComponent(RigidBody2D);
-
-        if(rigidBody != null)
-        {
-            if( 0 != this.moveDirections.size )
-            {
-                if( rigidBody.linearVelocity.x < this.velocityMax ||
-                rigidBody.linearVelocity.x > -this.velocityMax)
-                {
-                    var movementVec = this.getMovementVec();
-                    movementVec.x *= deltaTime;
-                    movementVec.y = 0;
-                    rigidBody.applyForceToCenter( CC_Helper.toVec2(movementVec), true );
-                }
-
-                if( rigidBody.linearVelocity.y < this.velocityMax ||
-                rigidBody.linearVelocity.y > -this.velocityMax)
-                {
-                    var movementVec = this.getMovementVec();
-                    movementVec.x = 0;
-                    movementVec.y *= deltaTime;
-                    rigidBody.applyForceToCenter( CC_Helper.toVec2(movementVec), true );
-                }
-            }
+            super.onLoad();
         }
 
-        var rotationAngle:number = 0;
-
-        this.moveDirections.forEach(element => 
+        public start () 
         {
-            switch(element) 
+            super.start();
+        }
+
+        private getMovementVec() : Vec3
+        {
+            var direction:Vec3 = new Vec3(0,0,0);
+
+            var movementVec = new Vec3();
+
+            this.moveDirections.forEach(element => 
             {
-            case Maze.eMoveDirection.LEFT:
-                    rotationAngle += this.rotationSpeed * deltaTime;
-                break;
-            case Maze.eMoveDirection.RIGHT:
-                    rotationAngle -= this.rotationSpeed * deltaTime;
-                break;
-            case Maze.eMoveDirection.UP:
-            case Maze.eMoveDirection.DOWN:
-                // do nothing
-                break;
+                switch(element) 
+                {
+                case Maze_PlayerBase.eMoveDirection.LEFT:
+                    // do nothing
+                    break;
+                case Maze_PlayerBase.eMoveDirection.RIGHT:
+                    // do nothing
+                    break;
+                case Maze_PlayerBase.eMoveDirection.UP:
+                    var direction:Vec3 = this.direction;
+                    movementVec.x += direction.x * this.acceleration * this.walkForce;
+                    movementVec.y += direction.y * this.acceleration * this.walkForce;
+                    break;
+                case Maze_PlayerBase.eMoveDirection.DOWN:
+                    var direction:Vec3 = this.direction;
+                    movementVec.x -= direction.x * this.acceleration * this.walkForce;
+                    movementVec.y -= direction.y * this.acceleration * this.walkForce;
+                    break;
+                }
+            });
+
+            return movementVec;
+        }
+
+        public update (deltaTime:number)
+        {
+            var rigidBody = this.getComponent(RigidBody2D);
+
+            if(rigidBody != null)
+            {
+                if( 0 != this.moveDirections.size )
+                {
+                    if( rigidBody.linearVelocity.x < this.velocityMax ||
+                    rigidBody.linearVelocity.x > -this.velocityMax)
+                    {
+                        var movementVec = this.getMovementVec();
+                        movementVec.x *= deltaTime;
+                        movementVec.y = 0;
+                        rigidBody.applyForceToCenter( Maze_Common.toVec2(movementVec), true );
+                    }
+
+                    if( rigidBody.linearVelocity.y < this.velocityMax ||
+                    rigidBody.linearVelocity.y > -this.velocityMax)
+                    {
+                        var movementVec = this.getMovementVec();
+                        movementVec.x = 0;
+                        movementVec.y *= deltaTime;
+                        rigidBody.applyForceToCenter( Maze_Common.toVec2(movementVec), true );
+                    }
+                }
             }
-        });
 
-        var resultQuat:Quat = new Quat();
+            var rotationAngle:number = 0;
 
-        this.node.setRotationFromEuler( 0, 0, this.node.angle + rotationAngle );
+            this.moveDirections.forEach(element => 
+            {
+                switch(element) 
+                {
+                case Maze_PlayerBase.eMoveDirection.LEFT:
+                        rotationAngle += this.rotationSpeed * deltaTime;
+                    break;
+                case Maze_PlayerBase.eMoveDirection.RIGHT:
+                        rotationAngle -= this.rotationSpeed * deltaTime;
+                    break;
+                case Maze_PlayerBase.eMoveDirection.UP:
+                case Maze_PlayerBase.eMoveDirection.DOWN:
+                    // do nothing
+                    break;
+                }
+            });
+
+            var resultQuat:Quat = new Quat();
+
+            this.node.setRotationFromEuler( 0, 0, this.node.angle + rotationAngle );
+        }
     }
 }

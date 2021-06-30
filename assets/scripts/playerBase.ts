@@ -1,10 +1,11 @@
-import { _decorator, Component, Vec2, Vec3, tween, Node, macro, EventKeyboard, SystemEventType, systemEvent, 
-    EventMouse, RigidBody2D, Collider2D, BoxCollider2D, Contact2DType, IPhysics2DContact, sp, UITransform, Director, misc, find, Camera, Canvas, Scene, Quat, ConeCollider } from 'cc';
-import { CC_Helper } from './common';
+import { _decorator, Component, Vec3, macro, EventKeyboard, SystemEventType, systemEvent, 
+    EventMouse, sp, Director, Camera, Canvas, Scene } from 'cc';
+import { Maze_GlobalMouseListener } from './globalMouseListener'
+import { Maze_Weapon } from './weapon';
 
-const { ccclass, property } = _decorator;
+const { property } = _decorator;
 
-export namespace Maze
+export namespace Maze_PlayerBase
 {
     export enum eMoveDirection
     {
@@ -14,7 +15,6 @@ export namespace Maze
         DOWN = 3
     };
 
-    @ccclass('PlayerBase')
     export class PlayerBase extends Component 
     {
         @property
@@ -46,36 +46,6 @@ export namespace Maze
             return this._currentMoveDirection;
         }
 
-        private _mousePos:Vec3 = new Vec3();
-        protected set mousePos(val:Vec3)
-        { 
-            this._mousePos = val; 
-        }
-        public get mousePos() : Vec3
-        {
-            return this._mousePos;
-        }
-
-        private _canvas:Canvas|null = null;
-        protected set canvas(val:Canvas|null)
-        { 
-            this._canvas = val; 
-        }
-        public get canvas() : Canvas|null
-        {
-            return this._canvas;
-        }
-
-        private _camera:Camera|null = null;
-        protected set camera(val:Camera|null)
-        { 
-            this._camera = val; 
-        }
-        public get camera() : Camera|null
-        {
-            return this._camera;
-        }
-
         private _walkForce:number = 300;
         protected set walkForce(val:number)
         { 
@@ -86,31 +56,18 @@ export namespace Maze
             return this._walkForce;
         }
 
-        onLoad ()
+        public onLoad ()
         {
-            var scene:Scene|null = Director.instance.getScene();
-
-            if(null != scene)
-            {
-                var canvasNode = scene.getChildByName("Canvas");
-
-                if(null != canvasNode)
-                {
-                    this.canvas = canvasNode.getComponent(Canvas);
-
-                    if(null != this.canvas)
-                    {
-                        this.camera = this.canvas.cameraComponent;
-                    }
-                }
-            }
         }
 
-        start() 
+        public start() 
         {
+            this.node.addComponent(Maze_GlobalMouseListener.GlobalMouseListener);
+
             systemEvent.on(SystemEventType.KEY_DOWN, this.onKeyDown, this);
             systemEvent.on(SystemEventType.KEY_UP, this.onKeyUp, this);
-            systemEvent.on(SystemEventType.MOUSE_MOVE, this.onMouseMove, this);
+            systemEvent.on(SystemEventType.MOUSE_DOWN, this.onMouseDown, this);
+            systemEvent.on(SystemEventType.MOUSE_UP, this.onMouseUp, this);
 
             var spineComp = this.getComponent(sp.Skeleton);
                                 
@@ -120,14 +77,33 @@ export namespace Maze
             }
         }
 
-        onMouseMove(event: EventMouse)
+        private onMouseDown(event: EventMouse)
         {
-            var screenLocation = event.getLocation();
-            this.mousePos.x = screenLocation.x;
-            this.mousePos.y = screenLocation.y;
+            if(event.getButton() == EventMouse.BUTTON_LEFT)
+            {
+                var weapon = this.getComponent(Maze_Weapon.Weapon);
+
+                if(null != weapon)
+                {
+                    weapon.fireOn();
+                }
+            }
         }
 
-        onKeyDown (event: EventKeyboard) 
+        private onMouseUp(event: EventMouse)
+        {
+            if(event.getButton() == EventMouse.BUTTON_LEFT)
+            {
+                var weapon = this.getComponent(Maze_Weapon.Weapon);
+
+                if(null != weapon)
+                {
+                    weapon.fireOff();
+                }
+            }
+        }
+
+        private onKeyDown (event: EventKeyboard) 
         {
             var applyLogic:boolean = false;
             var identifiedDirection:eMoveDirection = eMoveDirection.DOWN;
@@ -187,7 +163,7 @@ export namespace Maze
             }
         }
 
-        onKeyUp (event: EventKeyboard) 
+        private onKeyUp (event: EventKeyboard) 
         {
             switch(event.keyCode) 
             {
