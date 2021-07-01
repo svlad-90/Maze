@@ -1,4 +1,5 @@
-import { _decorator, Component, Node, Vec2, Vec3, RigidBody2D, UITransform } from 'cc';
+import { _decorator, Component, Node, Vec2, Vec3, RigidBody2D, UITransform, PolygonCollider2D, Contact2DType, Collider2D, IPhysics2DContact } from 'cc';
+import { Maze_Common } from './common'
 const { ccclass, property } = _decorator;
 
 export namespace Maze_BulletBase
@@ -7,10 +8,52 @@ export namespace Maze_BulletBase
     export class BulletBase extends Component 
     {
         private _direction:Vec2 = new Vec2();
+        private _shouldDestroy:boolean = false;
+
+        private _bulletTimeAlive:number = 2;
+        public get bulletTimeAlive() : number
+        {
+            return this._bulletTimeAlive;
+        }
+        public set bulletTimeAlive(val:number)
+        {
+            this._bulletTimeAlive = val;
+        }
+
+        private _bulletSpeed:number = 2;
+        public get bulletSpeed() : number
+        {
+            return this._bulletSpeed;
+        }
+        public set bulletSpeed(val:number)
+        {
+            this._bulletSpeed = val * 10;
+        }
+
+        onBeginContact (selfCollider:Collider2D, otherCollider:Collider2D, contact:IPhysics2DContact) 
+        {
+            if(true == this.node.isValid)
+            {
+                var selfRigidBody = selfCollider.node.getComponent(RigidBody2D);
+
+                if(null != selfRigidBody)
+                { 
+                    selfRigidBody.linearVelocity = new Vec2(0,0);
+                    selfRigidBody.angularVelocity = 0;
+                }
+
+                this._shouldDestroy = true;
+            }
+        }
 
         public onLoad ()
         {
+            var polygonCollider2D = this.node.getComponent(PolygonCollider2D);
 
+            if(null != polygonCollider2D)
+            {
+                polygonCollider2D.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+            }
         }
 
         public start() 
@@ -33,19 +76,36 @@ export namespace Maze_BulletBase
             {
                 this.node.destroy();
             }, 2);
+
+            var rigidBody = this.getComponent(RigidBody2D);
+
+            if(null != rigidBody)
+            {
+                var movementVec = this._direction.clone();
+
+                if( rigidBody.linearVelocity.x < this._bulletSpeed ||
+                rigidBody.linearVelocity.x > -this._bulletSpeed)
+                {  
+                    movementVec.x *= this._bulletSpeed;
+                }
+
+                if( rigidBody.linearVelocity.y < this._bulletSpeed ||
+                rigidBody.linearVelocity.y > -this._bulletSpeed)
+                {
+                    movementVec.y *= this._bulletSpeed;
+                }
+
+                rigidBody.linearVelocity = movementVec;
+            }
         }
 
-        public update(delta:number)
+        public update(deltaTime:number)
         {
-            if(null != this.node)
+            if(true == this.node.isValid)
             {
-                var rigidBody = this.getComponent(RigidBody2D);
-
-                if(null != rigidBody)
+                if(true == this._shouldDestroy)
                 {
-                    this._direction.x *= 100;
-                    this._direction.y *= 100;
-                    rigidBody.applyForceToCenter( this._direction, true );
+                    this.node.destroy();
                 }
             }
         }
