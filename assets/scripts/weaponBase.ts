@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Vec3, Prefab, instantiate } from 'cc';
+import { _decorator, Component, Vec3, Prefab, instantiate, Node } from 'cc';
 import { Maze_GlobalMouseListener } from './globalMouseListener';
 import { Maze_EasyReference } from './easyReference';
 import { Maze_BulletBase } from './bulletBase';
@@ -10,7 +10,7 @@ export namespace Maze_WeaponBase
     export abstract class WeaponBase extends Component 
     {
         @property (Prefab)
-        bulletPrefab:Prefab = new Prefab();
+        bulletPrefab:Prefab|null = null;
 
         @property
         fireRate:number = 1;
@@ -47,17 +47,22 @@ export namespace Maze_WeaponBase
             return this._direction;
         }
 
-        createBullet()
+        createBullet() : Node|null
         {
-            var bulletPrefab = instantiate(this.bulletPrefab);
-            
-            if(null != bulletPrefab)
-            {
-                var bulletComponent = bulletPrefab.getComponent( Maze_BulletBase.BulletBase );
+            var bulletPrefab = null;
 
-                if(null != bulletComponent)
+            if(null != this.bulletPrefab)
+            {
+                bulletPrefab = instantiate(this.bulletPrefab);
+            
+                if(null != bulletPrefab)
                 {
-                    bulletComponent.collisionGroup = this.bulletCollisionGroup;
+                    var bulletComponent = bulletPrefab.getComponent( Maze_BulletBase.BulletBase );
+
+                    if(null != bulletComponent)
+                    {
+                        bulletComponent.collisionGroup = this.bulletCollisionGroup;
+                    }
                 }
             }
             
