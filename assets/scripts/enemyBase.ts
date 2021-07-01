@@ -3,6 +3,7 @@ import { _decorator, Component, Node, sp, PolygonCollider2D, Contact2DType, Coll
 import { Maze_BulletBase } from './bulletBase';
 import { Maze_PlayerCursor } from './playerCursor';
 import { Maze_Common } from './common'
+import { Maze_WeaponTarget } from './weaponTarget';
 const { ccclass, property } = _decorator;
 
 @ccclass('EnemyBase')
@@ -41,6 +42,20 @@ export class EnemyBase extends Component
         if(null != collider2D)
         {
             collider2D.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
+
+        if(null != this.playerInFocus)
+        {
+            var weapon = this.node.getComponent(Maze_WeaponTarget.WeaponTarget);
+
+            if(null != weapon)
+            {
+                if(true == weapon.fireAllowed)
+                {
+                    weapon.target = this.playerInFocus.node;
+                    weapon.fireOn();
+                }
+            }
         }
     }
 
@@ -84,6 +99,12 @@ export class EnemyBase extends Component
                             spineComp.setAnimation(0, "death", false);
                             this._isDeathPlaying = true;
                             this._isTurnOffCollision = true;
+
+                            var weapon = this.node.getComponent(Maze_WeaponTarget.WeaponTarget);
+                            if(null != weapon)
+                            {
+                                weapon.fireOff();
+                            }
                         }
                     }
                 }
@@ -170,6 +191,7 @@ export class EnemyBase extends Component
             if(true == this._isDestroy)
             {
                 this.node.destroy();
+                this._isDestroy = false;
             }
         }
     }
