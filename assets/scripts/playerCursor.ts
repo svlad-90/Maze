@@ -6,7 +6,7 @@ import { Maze_EasyReference } from './easyReference'
 
 const { ccclass, property } = _decorator;
 
-export namespace Maze
+export namespace Maze_PlayerCursor
 {
     @ccclass('PlayerCursor')
     export class PlayerCursor extends Maze_PlayerBase.PlayerBase 

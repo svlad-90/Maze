@@ -16,10 +16,5 @@ export namespace Maze_BulletMetal
         {
             super.start();
         }
-
-        public fire(startingPosWorldCoord:Vec3, direction:Vec2)
-        {
-            super.fire(startingPosWorldCoord, direction);
-        }
     }
 }

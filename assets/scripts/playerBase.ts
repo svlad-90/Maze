@@ -47,10 +47,6 @@ export namespace Maze_PlayerBase
         }
 
         private _walkForce:number = 300;
-        protected set walkForce(val:number)
-        { 
-            this._walkForce = val; 
-        }
         public get walkForce() : number
         {
             return this._walkForce;
