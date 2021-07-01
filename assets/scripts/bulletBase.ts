@@ -10,6 +10,26 @@ export namespace Maze_BulletBase
         private _direction:Vec2 = new Vec2();
         private _shouldDestroy:boolean = false;
 
+        public set collisionGroup(val:number)
+        {
+            var collisionGroup = 1 << val;
+
+            var rigidBody = this.node.getComponent(RigidBody2D);
+
+            if(null != rigidBody)
+            {
+                rigidBody.group = collisionGroup;
+            }
+
+            var collider = this.node.getComponent(Collider2D);
+
+            if(null != collider)
+            {
+                collider.group = collisionGroup;
+                collider.apply();
+            }
+        }
+
         private _bulletTimeAlive:number = 2;
         public get bulletTimeAlive() : number
         {

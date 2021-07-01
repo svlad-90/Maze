@@ -1,7 +1,7 @@
 import { _decorator, Component, Vec3, macro, EventKeyboard, SystemEventType, systemEvent, 
     EventMouse, sp, Director, Camera, Canvas, Scene } from 'cc';
 import { Maze_GlobalMouseListener } from './globalMouseListener'
-import { Maze_Weapon } from './weapon';
+import { Maze_WeaponCursor } from './weaponCursor';
 
 const { property } = _decorator;
 
@@ -77,7 +77,7 @@ export namespace Maze_PlayerBase
         {
             if(event.getButton() == EventMouse.BUTTON_LEFT)
             {
-                var weapon = this.getComponent(Maze_Weapon.Weapon);
+                var weapon = this.getComponent(Maze_WeaponCursor.WeaponCursor);
 
                 if(null != weapon)
                 {
@@ -90,7 +90,7 @@ export namespace Maze_PlayerBase
         {
             if(event.getButton() == EventMouse.BUTTON_LEFT)
             {
-                var weapon = this.getComponent(Maze_Weapon.Weapon);
+                var weapon = this.getComponent(Maze_WeaponCursor.WeaponCursor);
 
                 if(null != weapon)
                 {
