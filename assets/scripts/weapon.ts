@@ -22,6 +22,9 @@ export namespace Maze_Weapon
         @property
         bulletSpeed:number = 2;
 
+        @property
+        damage:number = 5;
+
         private easyReference:Maze_EasyReference.EasyReference|null = null;
 
         private _fireOn:boolean = false;
@@ -74,7 +77,7 @@ export namespace Maze_Weapon
 
                                 if(null != bulletUITransform)
                                 {
-                                    bulletComponent.fire(bulletUITransform.convertToWorldSpaceAR(this.node.position), bulletFlyingVec);
+                                    bulletComponent.fire(bulletUITransform.convertToWorldSpaceAR(this.node.position), bulletFlyingVec, this.damage);
                                 }
                             }
                         }

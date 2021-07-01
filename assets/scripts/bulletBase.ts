@@ -30,6 +30,12 @@ export namespace Maze_BulletBase
             this._bulletSpeed = val * 10;
         }
 
+        private _damage:number = 2;
+        public get damage() : number
+        {
+            return this._damage;
+        }
+
         onBeginContact (selfCollider:Collider2D, otherCollider:Collider2D, contact:IPhysics2DContact) 
         {
             if(true == this.node.isValid)
@@ -61,8 +67,10 @@ export namespace Maze_BulletBase
 
         }
 
-        public fire(startingPosWorldCoord:Vec3, direction:Vec2)
+        public fire(startingPosWorldCoord:Vec3, direction:Vec2, damage:number)
         {
+            this._damage = damage;
+
             var myUITranform = this.node.getComponent(UITransform);
 
             if(null != myUITranform)
