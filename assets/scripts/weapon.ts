@@ -16,6 +16,12 @@ export namespace Maze_Weapon
         @property
         fireRate:number = 1;
 
+        @property
+        bulletTimeAlive:number = 2;
+
+        @property
+        bulletSpeed:number = 2;
+
         private easyReference:Maze_EasyReference.EasyReference|null = null;
 
         private _fireOn:boolean = false;
@@ -43,6 +49,9 @@ export namespace Maze_Weapon
 
                 if(null != bulletComponent)
                 {
+                    bulletComponent.bulletTimeAlive = this.bulletTimeAlive;
+                    bulletComponent.bulletSpeed = this.bulletSpeed;
+
                     if(null != this.easyReference)
                     {
                         var globalMouseListener = this.getComponent(Maze_GlobalMouseListener.GlobalMouseListener);

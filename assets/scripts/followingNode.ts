@@ -19,6 +19,9 @@ namespace Maze_FollowingObject
         @property
         inheritRotation:boolean = false;
 
+        @property
+        useLerp:boolean = false;
+
         update (deltaTime:number)
         {
             if(null != this.followedObject)
@@ -33,7 +36,15 @@ namespace Maze_FollowingObject
                     targetPositionWorldCoord.y += followedObjectUITransform.height * this.followedObject.scale.y * this.adjustmentY;
                     var currentPosition = this.node.position.clone();
 
-                    currentPosition.lerp( myUITransform.convertToNodeSpaceAR( targetPositionWorldCoord ), 0.1 );
+                    if(true == this.useLerp)
+                    {
+                        currentPosition.lerp( myUITransform.convertToNodeSpaceAR( targetPositionWorldCoord ), 0.1 );
+                    }
+                    else
+                    {
+                        currentPosition = myUITransform.convertToNodeSpaceAR( targetPositionWorldCoord );
+                    }
+
                     this.node.setPosition( currentPosition.x, currentPosition.y );
 
                     if(true == this.inheritRotation)
