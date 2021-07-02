@@ -37,19 +37,21 @@ export namespace Maze_PlayerCursor
                 switch(element) 
                 {
                 case Maze_PlayerBase.eMoveDirection.LEFT:
-                        movementVec.x -= this.acceleration * this.walkForce;
+                        movementVec.x -= 1;
                     break;
                 case Maze_PlayerBase.eMoveDirection.RIGHT:
-                        movementVec.x += this.acceleration * this.walkForce;
+                        movementVec.x += 1;
                     break;
                 case Maze_PlayerBase.eMoveDirection.UP:
-                        movementVec.y += this.acceleration * this.walkForce;
+                        movementVec.y += 1;
                     break;
                 case Maze_PlayerBase.eMoveDirection.DOWN:
-                        movementVec.y -= this.acceleration * this.walkForce;
+                        movementVec.y -= 1;
                     break;
                 }
             });
+
+            movementVec.normalize().multiply( new Vec3(this.acceleration * this.walkForce, this.acceleration * this.walkForce, 0) );
 
             return movementVec;
         }

@@ -766,8 +766,8 @@
       "y": 1,
       "z": 0
     },
-    "acceleration": 1000,
-    "velocityMax": 1000,
+    "acceleration": 100,
+    "velocityMax": 100,
     "rotationSpeed": 75,
     "_id": "a0kq5cOndH1pwUOi7tEplD"
   },
