@@ -109,7 +109,7 @@ export namespace Maze_BulletBase
 
             if(null != rigidBody)
             {
-                var movementVec = this._direction.clone();
+                var movementVec = this._direction.clone().normalize();
 
                 if( rigidBody.linearVelocity.x < this._bulletSpeed ||
                 rigidBody.linearVelocity.x > -this._bulletSpeed)

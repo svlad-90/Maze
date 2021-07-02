@@ -786,7 +786,7 @@
     },
     "fireRate": 0.05,
     "bulletTimeAlive": 2,
-    "bulletSpeed": 200,
+    "bulletSpeed": 100,
     "damage": 34,
     "bulletCollisionGroup": 3,
     "_id": "d2Nm0s5mRJxJeJl4hUxD+w"
@@ -887,6 +887,21 @@
     "player": {
       "__id__": 19
     },
+    "innerBB": {
+      "__type__": "cc.Rect",
+      "x": -800,
+      "y": -800,
+      "width": 1600,
+      "height": 1600
+    },
+    "outerBB": {
+      "__type__": "cc.Rect",
+      "x": -700,
+      "y": -700,
+      "width": 1400,
+      "height": 1400
+    },
+    "maxMonsterNumber": 20,
     "_id": "62b2Hn0eRALbb03WZUXA/V"
   },
   {

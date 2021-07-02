@@ -30,6 +30,28 @@ export namespace Maze_EnemyBase
         private _isDestroy:boolean = false;
         private _isTurnOffCollision:boolean = false;
 
+        private _needToSendDeathNotificationCallbacks:boolean = false; 
+
+        private _deathNotificationCallbacks : (((node:Node) => void) | null)[] = [];
+        public addDeathNotificationCallback(val:((node:Node) => void) | null)
+        {
+            if(null != val)
+            {
+                this._deathNotificationCallbacks.push(val);
+            }
+        }
+        public removeDeathNotificationCallback(val:((node:Node) => void) | null)
+        {
+            if(null != val)
+            {
+                const index = this._deathNotificationCallbacks.indexOf(val, 0);
+                if (index > -1) 
+                {
+                    this._deathNotificationCallbacks.splice(index, 1);
+                }
+            }
+        }
+
         private _walkForce:number = 300;
         public get walkForce() : number
         {
@@ -99,6 +121,8 @@ export namespace Maze_EnemyBase
                         {
                             if(false == this._isDeathPlaying)
                             {
+                                this._needToSendDeathNotificationCallbacks = true;
+
                                 spineComp.setAnimation(0, "death", false);
                                 this._isDeathPlaying = true;
                                 this._isTurnOffCollision = true;
@@ -135,6 +159,19 @@ export namespace Maze_EnemyBase
         {
             if(true == this.node.isValid)
             {
+                if(true == this._needToSendDeathNotificationCallbacks)
+                {
+                    this._deathNotificationCallbacks.forEach(element => 
+                    {
+                        if(null != element)
+                        {
+                            element(this.node);
+                        }
+                    });
+
+                    this._needToSendDeathNotificationCallbacks = false;
+                }
+
                 var rigidBody = this.getComponent(RigidBody2D);
 
                 if(rigidBody != null)
