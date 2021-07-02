@@ -9,6 +9,16 @@ export namespace Maze_BulletBase
     {
         private _direction:Vec2 = new Vec2();
         private _shouldDestroy:boolean = false;
+        
+        private _isDamageActive:boolean = true;
+        public get isDamageActive():boolean
+        {
+            return this._isDamageActive;
+        }
+        public deactivate()
+        {
+            this._isDamageActive = false;
+        }
 
         public set collisionGroup(val:number)
         {

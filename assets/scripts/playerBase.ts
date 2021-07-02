@@ -46,7 +46,7 @@ export namespace Maze_PlayerBase
             return this._currentMoveDirection;
         }
 
-        private _walkForce:number = 300;
+        private _walkForce:number = 350;
         public get walkForce() : number
         {
             return this._walkForce;

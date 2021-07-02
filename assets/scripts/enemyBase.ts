@@ -111,26 +111,31 @@ export namespace Maze_EnemyBase
 
                 if(null != bullet)
                 { 
-                    this.health -= bullet.damage;
-
-                    if(this.health <= 0)
+                    if(true == bullet.isDamageActive)
                     {
-                        var spineComp = this.getComponent(sp.Skeleton);
-                                    
-                        if(spineComp != null)
+                        bullet.deactivate();
+
+                        this.health -= bullet.damage;
+
+                        if(this.health <= 0)
                         {
-                            if(false == this._isDeathPlaying)
+                            var spineComp = this.getComponent(sp.Skeleton);
+                                        
+                            if(spineComp != null)
                             {
-                                this._needToSendDeathNotificationCallbacks = true;
-
-                                spineComp.setAnimation(0, "death", false);
-                                this._isDeathPlaying = true;
-                                this._isTurnOffCollision = true;
-
-                                var weapon = this.node.getComponent(Maze_WeaponTarget.WeaponTarget);
-                                if(null != weapon)
+                                if(false == this._isDeathPlaying)
                                 {
-                                    weapon.fireOff();
+                                    this._needToSendDeathNotificationCallbacks = true;
+
+                                    spineComp.setAnimation(0, "death", false);
+                                    this._isDeathPlaying = true;
+                                    this._isTurnOffCollision = true;
+
+                                    var weapon = this.node.getComponent(Maze_WeaponTarget.WeaponTarget);
+                                    if(null != weapon)
+                                    {
+                                        weapon.fireOff();
+                                    }
                                 }
                             }
                         }
