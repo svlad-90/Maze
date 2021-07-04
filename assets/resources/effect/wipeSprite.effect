@@ -1,0 +1,109 @@
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs:vert
+      frag: fs:frag
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        start_angle: { value: 0.0 }
+        wipe: { value: 0.5 }
+        rx: { value: 0.0 , editor: { visible: false }}
+        ry: { value: 0.0 , editor: { visible: false }}
+        rw: { value: 1.0 , editor: { visible: false }}
+        rh: { value: 1.0 , editor: { visible: false }}
+        tw: { value: 1.0 , editor: { visible: false }}
+        th: { value: 1.0 , editor: { visible: false }}
+}%
+
+CCProgram vs %{
+  precision highp float;
+  #include <cc-global>
+  #if USE_LOCAL
+    #include <cc-local>
+  #endif
+  #if SAMPLE_FROM_RT
+    #include <common>
+  #endif
+  in vec3 a_position;
+  in vec2 a_texCoord;
+  in vec4 a_color;
+
+  out vec4 v_color;
+  out vec2 v_uv0;
+
+  vec4 vert () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if USE_LOCAL
+      pos = cc_matWorld * pos;
+    #endif
+
+    #if USE_PIXEL_ALIGNMENT
+      pos = cc_matView * pos;
+      pos.xyz = floor(pos.xyz);
+      pos = cc_matProj * pos;
+    #else
+      pos = cc_matViewProj * pos;
+    #endif
+
+    v_uv0 = a_texCoord;
+    #if SAMPLE_FROM_RT
+      CC_HANDLE_RT_SAMPLE_FLIP(v_uv0);
+    #endif
+    v_color = a_color;
+
+    return pos;
+  }
+}%
+
+CCProgram fs %{
+#define M_PI 3.1415926535897932384626433832795
+#define D2R  0.0174532925199432957692369076849
+
+precision highp float;
+
+in vec2 v_uv0;
+#pragma builtin(local)
+layout(set = 2, binding = 10) uniform sampler2D cc_spriteTexture;
+
+in vec4 v_color;
+
+uniform WipeShader 
+{
+  lowp float wipe;
+  lowp float start_angle;
+  lowp float rx;
+  lowp float ry;
+  lowp float rw;
+  lowp float rh;
+  lowp float tw;
+  lowp float th;
+};
+
+float get_angle(vec2 v1, vec2 v2)
+{
+  return atan(v1.x * v2.y - v1.y * v2.x, v1.x * v2.x + v1.y * v2.y);
+}
+
+vec4 frag () 
+{
+    vec4 color = texture(cc_spriteTexture, v_uv0);
+
+    vec2 start_vector = vec2(sin(-start_angle*D2R),cos(-start_angle*D2R))*vec2(tw/rw,th/rh);
+
+    vec2 uv_fix = (v_uv0-vec2(rx/tw,ry/th))*vec2(tw/rw,th/rh);
+
+    float angle = get_angle(uv_fix-vec2(0.5,0.5),start_vector);
+
+    if(angle+wipe*D2R > M_PI)
+    { 
+        color.a = 0.0;
+    }
+
+    return vec4(color.r, color.g, color.b, color.a);
+}
+}%

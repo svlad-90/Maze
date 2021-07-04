@@ -69,6 +69,7 @@
   "userData": {
     "hasAlpha": false,
     "type": "sprite-frame",
-    "redirect": "a88470c4-8218-4668-9416-6a1ac1b9979c@f9941"
+    "redirect": "a88470c4-8218-4668-9416-6a1ac1b9979c@f9941",
+    "flipVertical": false
   }
 }
