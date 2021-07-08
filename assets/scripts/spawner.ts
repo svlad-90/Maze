@@ -102,7 +102,10 @@ export class Spawner extends Component
 
                     for(var element of rectEdges) 
                     {
-                        var intersectionPoint = Maze_Common.linesCross( element.vec1, element.vec2, this.innerBB.center, checkIntersectionVec );
+                        var line1:Maze_Common.Line = new Maze_Common.Line( element.vec1, element.vec2 );
+                        var line2:Maze_Common.Line = new Maze_Common.Line( this.innerBB.center, checkIntersectionVec );
+
+                        var intersectionPoint = Maze_Common.linesCross( line1, line2 );
 
                         if(null != intersectionPoint)
                         {
@@ -154,7 +157,10 @@ export class Spawner extends Component
 
             if(null != this._monster)
             {
-                this.spawnMonster();
+                if(this.maxMonsterNumber != 0)
+                {
+                    this.spawnMonster();
+                }
             }
         });
 
