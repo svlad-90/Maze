@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, Canvas, Camera, Scene, Director } from 'cc';
+import { _decorator, Component, Node, Canvas, Camera, Scene, Director, UITransform } from 'cc';
 const { ccclass, property } = _decorator;
 
 export namespace Maze_EasyReference
@@ -17,6 +17,12 @@ export namespace Maze_EasyReference
         public get camera() : Camera|null
         {
             return this._camera;
+        }
+        
+        private _UITransform:UITransform|null = null;
+        public get UITransform() : UITransform|null
+        {
+            return this._UITransform;
         }
 
         onLoad()
@@ -37,6 +43,8 @@ export namespace Maze_EasyReference
                     }
                 }
             }
+
+            this._UITransform = this.node.getComponent(UITransform);
         }
 
         start () 

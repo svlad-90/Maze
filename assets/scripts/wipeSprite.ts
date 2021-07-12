@@ -6,6 +6,9 @@ const { ccclass, property, executeInEditMode } = _decorator;
 @executeInEditMode
 export class ShaderControl extends Component 
 {
+    @property
+    Active:boolean = false;
+
     private _wipe:number = 0;
 
     private _sprite:Sprite|null = null;
@@ -57,11 +60,14 @@ export class ShaderControl extends Component
 
     update()
     {
-        this.Wipe += 1;
-
-        if(this.Wipe == 361)
+        if(true == this.Active)
         {
-            this.Wipe = 0;
+            this.Wipe += 1;
+
+            if(this.Wipe == 361)
+            {
+                this.Wipe = 0;
+            }
         }
     }
 }
