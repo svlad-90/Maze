@@ -17,6 +17,11 @@ export namespace Maze_WeaponCursor
             {
                 bullet.parent = this.node.parent;
 
+                if(null != this.node.parent)
+                {
+                    this.node.parent.addChild(bullet);
+                }
+
                 var bulletComponent = bullet.getComponent(Maze_BulletBase.BulletBase);
 
                 if(null != bulletComponent)
