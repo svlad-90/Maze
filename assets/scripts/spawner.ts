@@ -1,7 +1,8 @@
-import { _decorator, Component, resources, Prefab, Node, error, Vec3, instantiate, randomRange, tween, sp, Color, math, Rect, Intersection2D, Vec2 } from 'cc';
+import { _decorator, Component, resources, Prefab, Node, error, Vec3, instantiate, randomRange, tween, sp, Color, math, Rect, Intersection2D, Vec2, randomRangeInt } from 'cc';
 import { Maze_PlayerCursor } from './playerCursor';
 import { Maze_EnemyBase } from './enemyBase';
 import { Maze_Common } from './common';
+import { Maze_MapBuilder } from './map/mapBuilder';
 const { ccclass, property } = _decorator;
 
 @ccclass('Spawner')
@@ -14,13 +15,16 @@ export class Spawner extends Component
     player:Maze_PlayerCursor.PlayerCursor|null = null;
 
     @property
-    innerBB:math.Rect = new Rect(-500, -500, 1000, 1000);
+    innerBB:math.Rect = new Rect(-10, -10, 20, 20);
 
     @property
-    outerBB:math.Rect = new Rect(-250, -250, 500, 500);
+    outerBB:math.Rect = new Rect(-15, -15, 30, 30);
+
+    @property (Maze_MapBuilder.MapBuilder)
+    map:Maze_MapBuilder.MapBuilder|null = null;
 
     @property
-    maxMonsterNumber:number = 100;
+    maxMonsterNumber:number = 30;
 
     private _monster:Prefab|null = null;
     private _monsterLoaded:boolean = false;
@@ -65,7 +69,7 @@ export class Spawner extends Component
             {
                 var enemyBase = monsterInstance.getComponent(Maze_EnemyBase.EnemyBase);
 
-                if(null != enemyBase)
+                if(null != enemyBase && null != this.map)
                 {
                     enemyBase.addDeathNotificationCallback(this.onMonsterDead.bind(this));
 
@@ -73,55 +77,22 @@ export class Spawner extends Component
 
                     var playerPositionWorldCoord = this.player.node.worldPosition;
 
-                    var creationPos:Vec2 = new Vec2( randomRange(this.outerBB.xMin, this.outerBB.xMax), 
-                                                     randomRange(this.outerBB.yMin, this.outerBB.yMax));
+                    var tileCoord: Vec2 = this.map.pointToTile(Maze_Common.toVec2( playerPositionWorldCoord ) );
 
-                    var checkIntersectionVec:Vec2 = new Vec2();
-                    
-                    Vec2.subtract(checkIntersectionVec, creationPos, this.innerBB.center);
-                    checkIntersectionVec.normalize().multiply(new Vec2(this.outerBB.xMax * 10, this.outerBB.yMax * 10));
+                    var walkableTiles = this.map.filterWalkableTiles( new Rect( this.innerBB.x + tileCoord.x, this.innerBB.y + tileCoord.y, this.innerBB.width, this.innerBB.height ),
+                                                                      new Rect( this.outerBB.x + tileCoord.x, this.outerBB.y + tileCoord.y, this.outerBB.width, this.outerBB.height ) );
 
-                    type tPointsPair = 
+                    var creationTileIndex = randomRangeInt(0, walkableTiles.length);
+                    var creationTile = walkableTiles[creationTileIndex];
+
+                    try
                     {
-                        vec1: Vec2;
-                        vec2: Vec2;
-                    };
-
-                    var rectEdges:tPointsPair[] = [];
-
-                    var leftEdge:tPointsPair = { vec1 : new Vec2(this.innerBB.xMin, this.innerBB.yMin), vec2 : new Vec2(this.innerBB.xMin, this.innerBB.yMax) };
-                    rectEdges.push(leftEdge);
-                    var topEdge:tPointsPair = { vec1 : new Vec2(this.innerBB.xMin, this.innerBB.yMax), vec2 : new Vec2(this.innerBB.xMax, this.innerBB.yMax) };
-                    rectEdges.push(topEdge);
-                    var rightEdge:tPointsPair = { vec1 : new Vec2(this.innerBB.xMax, this.innerBB.yMax), vec2 : new Vec2(this.innerBB.xMax, this.innerBB.yMin) };
-                    rectEdges.push(rightEdge);
-                    var bottomEdge:tPointsPair = { vec1 : new Vec2(this.innerBB.xMax, this.innerBB.yMin), vec2 : new Vec2(this.innerBB.xMin, this.innerBB.yMin) };
-                    rectEdges.push(bottomEdge);
-
-                    var creationVec:Vec2|null = null;
-
-                    for(var element of rectEdges) 
-                    {
-                        var line1:Maze_Common.Line = new Maze_Common.Line( element.vec1, element.vec2 );
-                        var line2:Maze_Common.Line = new Maze_Common.Line( this.innerBB.center, checkIntersectionVec );
-
-                        var intersectionPoint = Maze_Common.linesCross( line1, line2 );
-
-                        if(null != intersectionPoint)
-                        {
-                            creationVec = intersectionPoint;
-                            break;
-                        }
+                        var creationPos:Vec2 = this.map.tileToPoint(creationTile);
+                        monsterInstance.setWorldPosition(new Vec3(creationPos.x, creationPos.y, 0));
                     }
-
-                    if(null != creationVec)
+                    catch
                     {
-                        creationVec.add(Maze_Common.toVec2( this.player.node.worldPosition ) );
-                        monsterInstance.setWorldPosition(new Vec3(creationVec.x, creationVec.y, 0));
-                    }
-                    else
-                    {
-                        monsterInstance.setWorldPosition(new Vec3(100, 100, 0));
+                        console.log("Error!");
                     }
                 }
                 else
@@ -163,12 +134,10 @@ export class Spawner extends Component
                 }
             }
         });
-
-        
     }
 
     start () 
     {
-
+        
     }
 }

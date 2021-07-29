@@ -4,6 +4,40 @@ import { Maze_DoubleLinkedList } from './common/doubleLinkedList';
 
 export namespace Maze_Common
 {
+    function isEqual(objects:any[]) : boolean
+    {
+        return objects.every(obj => JSON.stringify(obj) === JSON.stringify(objects[0]));
+    }
+
+    function isEquivalent(a:any, b:any) {
+        // Create arrays of property names
+        var aProps = Object.getOwnPropertyNames(a);
+        var bProps = Object.getOwnPropertyNames(b);
+    
+        // If number of properties is different,
+        // objects are not equivalent
+        if (aProps.length != bProps.length) 
+        {
+            return false;
+        }
+    
+        for (var i = 0; i < aProps.length; i++) 
+        {
+            var propName = aProps[i];
+    
+            // If values of same property are not equal,
+            // objects are not equivalent
+            if (a[propName] !== b[propName]) 
+            {
+                return false;
+            }
+        }
+    
+        // If we made it this far, objects
+        // are considered equivalent
+        return true;
+    }
+
     export class Line
     {
         startPoint:Vec2 = new Vec2(0, 0);
