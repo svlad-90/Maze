@@ -1,6 +1,6 @@
 export namespace Maze_FSM
 {
-    export type FSMCallback<StateIdsEnum, Context> = (stateId:StateIdsEnum, context:Context) => void;
+    export type FSMCallback<StateIdsEnum, Context> = (context:Context) => void;
     type TransitionMap<StateIdsEnum, TransitionIdsEnum, Context> = Map<TransitionIdsEnum, Transition<StateIdsEnum, TransitionIdsEnum, Context>>;
 
     export class State<StateIdsEnum, TransitionIdsEnum, Context>
@@ -39,17 +39,19 @@ export namespace Maze_FSM
 
         public enter(context:Context)
         {
-            this._onEnter(this._stateId, context);
+            this._onEnter(context);
         }
 
         public exit(context:Context)
         {
-            this._onExit(this._stateId, context);
+            this._onExit(context);
         }
     }
 
     export class Transition<StateIdsEnum, TransitionIdsEnum, Context>
     {
+        private _onTransition:FSMCallback<StateIdsEnum, Context>;
+        
         private _transitionId:TransitionIdsEnum;
         public get transitionId() : TransitionIdsEnum
         {
@@ -61,17 +63,25 @@ export namespace Maze_FSM
 
         constructor(transitionId:TransitionIdsEnum, 
                     startState:State<StateIdsEnum, TransitionIdsEnum, Context>, 
-                    endState:State<StateIdsEnum, TransitionIdsEnum, Context>)
+                    endState:State<StateIdsEnum, TransitionIdsEnum, Context>,
+                    onTransition:FSMCallback<StateIdsEnum, Context> = (context:Context)=>{})
         {
             this._transitionId = transitionId;
             this._startState = startState;
             this._endState = endState;
+            this._onTransition = onTransition;
         }
 
         public applyTransition(context:Context) : State<StateIdsEnum, TransitionIdsEnum, Context>
         {
-            this._startState.exit(context);
-            this._endState.enter(context);
+            if(this._startState != this._endState)
+            {
+                this._startState.exit(context);
+                this._endState.enter(context);
+            }
+
+            this._onTransition(context);
+
             return this._endState;
         }
     }

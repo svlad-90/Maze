@@ -186,9 +186,9 @@
     "_sharedGraphics": {
       "__id__": 6
     },
-    "_width": 30,
-    "_height": 30,
-    "_mapNodeSize": 150,
+    "_width": 51,
+    "_height": 51,
+    "_mapNodeSize": 200,
     "_floorPrefab": {
       "__uuid__": "de779049-9428-45bf-86c9-01b80763f63a",
       "__expectedType__": "cc.Prefab"
@@ -1006,7 +1006,7 @@
     "map": {
       "__id__": 5
     },
-    "maxMonsterNumber": 30,
+    "maxMonsterNumber": 40,
     "_id": "ecEMCWE29BK7An0ZWXBke6"
   },
   {

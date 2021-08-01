@@ -99,7 +99,7 @@ export namespace Maze_EnemyBase
 
             // Declaration of FSM states
 
-            var idleState = new EnemyFSMState( EnemyFSMStateId.Idle, (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            var idleState = new EnemyFSMState( EnemyFSMStateId.Idle, (context:EnemyFSMContext)=>
             {
                 // enter
                 var spineComp = this.getComponent(sp.Skeleton);
@@ -109,12 +109,12 @@ export namespace Maze_EnemyBase
                     spineComp.setAnimation(0, "idle", true);
                 }
             }, 
-            (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            (context:EnemyFSMContext)=>
             {
                 // exit
             });
 
-            var chasingPlayerState = new EnemyFSMState( EnemyFSMStateId.ChasingPlayer, (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            var chasingPlayerState = new EnemyFSMState( EnemyFSMStateId.ChasingPlayer, (context:EnemyFSMContext)=>
             {
                 var spineComp = this.getComponent(sp.Skeleton);
                                     
@@ -137,21 +137,21 @@ export namespace Maze_EnemyBase
                     }
                 }
             }, 
-            (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            (context:EnemyFSMContext)=>
             {
                 // exit
             });
 
-            var bypassObstacleState = new EnemyFSMState( EnemyFSMStateId.BypassObstacle, (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            var bypassObstacleState = new EnemyFSMState( EnemyFSMStateId.BypassObstacle, (context:EnemyFSMContext)=>
             {
                 // enter
             }, 
-            (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            (context:EnemyFSMContext)=>
             {
                 // exit
             });
 
-            var deathState = new EnemyFSMState( EnemyFSMStateId.Death, (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            var deathState = new EnemyFSMState( EnemyFSMStateId.Death, (context:EnemyFSMContext)=>
             {
                 // enter
                 var spineComp = this.getComponent(sp.Skeleton);
@@ -184,25 +184,25 @@ export namespace Maze_EnemyBase
                     });
                 }
             }, 
-            (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            (context:EnemyFSMContext)=>
             {
                 // exit
             });
 
-            var destroyState = new EnemyFSMState( EnemyFSMStateId.Destroy, (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            var destroyState = new EnemyFSMState( EnemyFSMStateId.Destroy, (context:EnemyFSMContext)=>
             {
                 // enter
             }, 
-            (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            (context:EnemyFSMContext)=>
             {
                 // exit
             });
 
-            var finalState = new EnemyFSMState( EnemyFSMStateId.Final, (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            var finalState = new EnemyFSMState( EnemyFSMStateId.Final, (context:EnemyFSMContext)=>
             {
                 // enter
             }, 
-            (EnemyFSMStateId:EnemyFSMStateId, context:EnemyFSMContext)=>
+            (context:EnemyFSMContext)=>
             {
                 // exit
             });
