@@ -12,7 +12,7 @@ export class LightingController extends Component
     private _cursorDebugPointNode: Node = new Node();
     private _cursorDebugPoint: Maze_CursorDebugPoint.CursorDebugPoint|null = null;
 
-    start () 
+    start() 
     {
         this.node.insertChild(this._cursorDebugPointNode, this.node.children.length);
         this._cursorDebugPointNode.parent = this.node;

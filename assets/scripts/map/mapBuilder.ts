@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, Vec2, instantiate, Vec3, UITransform, Graphics, ResolutionPolicy, math, randomRangeInt, Label } from 'cc';
+import { _decorator, Component, Node, Prefab, Vec2, instantiate, Vec3, UITransform, Graphics, ResolutionPolicy, math, randomRangeInt, Label, Rect } from 'cc';
 import { Maze_GraphicsWall } from '../wall/graphicsWall';
 import { Maze_MazeGenerator } from '../maze/mazeGenerator';
 import { Maze_PriorityQueue } from '../common/priorityQueue/priorityQueue.ts';
@@ -783,35 +783,100 @@ export namespace Maze_MapBuilder
             }
         }
 
-        start()
+        onLoad()
         {
             this.createMap();
         }
         
+        private normalizeRect(rect:Rect):Rect
+        {
+            var result:Rect = new Rect();
+
+            if(rect.x < 0)
+            {
+                result.x = 0;
+            }
+            else if(rect.x >= this._width)
+            {
+                result.x = this._width - 1;
+            }
+            else
+            {
+                result.x = rect.x;
+            }
+
+            if(rect.y < 0)
+            {
+                result.y = 0;
+            }
+            else if(rect.y >= this._height)
+            {
+                result.y = this._height - 1;
+            }
+            else
+            {
+                result.y = rect.y;
+            }
+
+            if(rect.width < 0)
+            {
+                result.width = 0;
+            }
+            else if(rect.x + rect.width > this._width)
+            {
+                result.width = this._width - rect.x;
+            }
+            else
+            {
+                result.width = rect.width;
+            }
+
+            if(rect.height < 0)
+            {
+                result.height = 0;
+            }
+            else if(rect.y + rect.height > this._height)
+            {
+                result.height = this._height - rect.y;
+            }
+            else
+            {
+                result.height = rect.height;
+            }
+
+            return result;
+        }
+
         filterWalkableTiles( innerRange:math.Rect, outterRange:math.Rect ) : Vec2[]
         {
             var result:Vec2[] = []
 
             if(null != this._map)
             {
-                for(var row:number = outterRange.y; row < outterRange.y + outterRange.height; ++row)
+                if(0 != this._map.MapNodes.length)
                 {
-                    for(var column:number = outterRange.x; column < outterRange.x + outterRange.width; ++column)
-                    {
-                        try
-                        {
-                            if( ( column >= 0 && row >= 0 ) && ( column < innerRange.x || column > innerRange.x + innerRange.width - 1 || 
-                                row < innerRange.y || row > innerRange.y + innerRange.height - 1 )
-                                && true == this._map.MapNodes[row][column].isWalkable )
-                            {
-                                result.push(new Vec2(column, row));
-                            }
-                        }
-                        catch
-                        {
-                            console.log("Error!");
-                        }
+                    var innerRangeNormalized:Rect = this.normalizeRect(innerRange);
+                    var outerRangeNormalized:Rect = this.normalizeRect(outterRange);
 
+                    for(var row:number = outerRangeNormalized.y; row < outerRangeNormalized.yMax; ++row)
+                    {
+                        for(var column:number = outerRangeNormalized.x; column < outerRangeNormalized.xMax; ++column)
+                        {
+                            try
+                            {
+                                if( ( column < innerRangeNormalized.x || column > innerRangeNormalized.xMax - 1 
+                                    || row < innerRangeNormalized.y || row > innerRangeNormalized.yMax - 1 )
+                                    && true == this._map.MapNodes[row][column].isWalkable )
+                                {
+                                    result.push(new Vec2(column, row));
+                                }
+                            }
+                            catch
+                            {
+                                throw("Error!");
+                            }
+
+                        }
                     }
                 }
             }
@@ -825,20 +890,22 @@ export namespace Maze_MapBuilder
 
             if(null != this._map)
             {
-                for(var row:number = range.y; row < range.y + range.height; ++row)
+                var rangeNormalized:Rect = this.normalizeRect(range);
+
+                for(var row:number = rangeNormalized.y; row < rangeNormalized.yMax; ++row)
                 {
-                    for(var column:number = range.x; column < range.x + range.width; ++column)
+                    for(var column:number = rangeNormalized.x; column < rangeNormalized.xMax; ++column)
                     {
                         try
                         {
-                            if( ( column >= 0 && row >= 0 ) && true == this._map.MapNodes[row][column].isWalkable )
+                            if( true == this._map.MapNodes[row][column].isWalkable )
                             {
                                 result.push(new Vec2(column, row));
                             }
                         }
                         catch
                         {
-                            console.log("Error!");
+                            throw("Error!");
                         }
 
                     }
@@ -852,10 +919,17 @@ export namespace Maze_MapBuilder
         {
             var result:Vec2 = new Vec2();
 
-            var leftBottomPoint = this.getLeftBottompWorldPosition();
+            try
+            {
+                var leftBottomPoint = this.getLeftBottompWorldPosition();
 
-            result.x = leftBottomPoint.x + (tile.x * this._mapNodeSize) + (this._mapNodeSize / 2);
-            result.y = leftBottomPoint.y + ( (this.Height - tile.y) * this._mapNodeSize) + (this._mapNodeSize / 2);
+                result.x = leftBottomPoint.x + (tile.x * this._mapNodeSize) + (this._mapNodeSize / 2);
+                result.y = leftBottomPoint.y + ( (this.Height - tile.y) * this._mapNodeSize) + (this._mapNodeSize / 2);
+            }
+            catch
+            {
+                throw("Error!");
+            }
 
             return result;
         }
