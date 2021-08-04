@@ -1,11 +1,13 @@
 
-import { _decorator, Component, Node, sp, PolygonCollider2D, Contact2DType, Collider2D, IPhysics2DContact, RigidBody2D, Vec3, Vec2, misc } from 'cc';
+import { _decorator, Component, Node, sp, PolygonCollider2D, Contact2DType, Collider2D, IPhysics2DContact, RigidBody2D, Vec3, Vec2, misc, Graphics, math, UITransform, game, PhysicsSystem2D, ERaycast2DType} from 'cc';
 import { Maze_BulletBase } from './bulletBase';
 import { Maze_PlayerCursor } from './playerCursor';
 import { Maze_Common } from './common'
 import { Maze_WeaponTarget } from './weaponTarget';
 import { Maze_FSM } from './common/FSM/FSM';
-import { Maze_GraphicsWall } from './wall/graphicsWall'
+import { Maze_MapBuilder } from './map/mapBuilder'
+import { Maze_GraphicsWall } from './wall/graphicsWall';
+import { Maze_Observer } from './observer/observer';
 const { ccclass, property } = _decorator;
 
 export namespace Maze_EnemyBase
@@ -15,9 +17,10 @@ export namespace Maze_EnemyBase
         Idle = 0,
         ChasingPlayer = 1,
         BypassObstacle = 2,
-        Death = 3,
-        Destroy = 4,
-        Final = 5
+        BypassObstacleCorner = 3,
+        Death = 4,
+        Destroy = 5,
+        Final = 6
     }
 
     enum EnemyFSMTransitions
@@ -25,9 +28,10 @@ export namespace Maze_EnemyBase
         To_ChasingPlayer = 0,
         To_Idle = 1,
         To_BypassObstacle = 2,
-        To_Death = 3,
-        To_Destroy = 4,
-        To_Final = 5
+        To_BypassObstacleCorner = 3,
+        To_Death = 4,
+        To_Destroy = 5,
+        To_Final = 6
     }
 
     class EnemyFSMContext
@@ -40,7 +44,7 @@ export namespace Maze_EnemyBase
     class EnemyFSMTransition extends Maze_FSM.Transition<EnemyFSMStateId, EnemyFSMTransitions, EnemyFSMContext>{}
 
     @ccclass('EnemyBase')
-    export class EnemyBase extends Component 
+    export class EnemyBase extends Component
     {
         @property
         health:number = 100;
@@ -57,9 +61,33 @@ export namespace Maze_EnemyBase
         @property
         velocityMax:number = 0;
 
+        @property
+        debug:boolean = false;
+
+        @property
+        wallCollisionGroup:number = 0;
+
+        private _FSMTransitionBlocked:boolean = false;
+
+        private _cursorPlayerGridPositionObserver:Maze_Observer.Observer<Maze_PlayerCursor.CursorPlayerGridPositionContext> 
+        = new Maze_Observer.Observer<Maze_PlayerCursor.CursorPlayerGridPositionContext>();
+        
+        private _graphicsNode:Node = new Node();
+
+        private _map:Maze_MapBuilder.MapBuilder|null = null;
+        public get map():Maze_MapBuilder.MapBuilder|null
+        {
+            return this._map;
+        }
+        public set map(val:Maze_MapBuilder.MapBuilder|null)
+        {
+            this._map = val;
+        } 
+
         private _currentAngle = 0;
         private _targetDirection:Vec2 = new Vec2();
         private _movementDirection:number = 0;
+        private _rigidBody:RigidBody2D|null = null;
 
         private _isTurnOffCollision:boolean = false;
 
@@ -92,6 +120,7 @@ export namespace Maze_EnemyBase
         }
 
         private _FSM:EnemyFSM;
+        private _pathToPlayer:Vec2[] = [];
 
         constructor()
         {
@@ -144,7 +173,37 @@ export namespace Maze_EnemyBase
 
             var bypassObstacleState = new EnemyFSMState( EnemyFSMStateId.BypassObstacle, (context:EnemyFSMContext)=>
             {
-                // enter
+                var spineComp = this.getComponent(sp.Skeleton);
+                                    
+                if(spineComp != null)
+                {
+                    spineComp.setAnimation(0, "run", true);
+                }
+
+                this.updatePathToPlayer();
+            }, 
+            (context:EnemyFSMContext)=>
+            {
+                // exit
+            });
+
+            var bypassObstacleCornerState = new EnemyFSMState( EnemyFSMStateId.BypassObstacleCorner, (context:EnemyFSMContext)=>
+            {
+                var spineComp = this.getComponent(sp.Skeleton);
+                                    
+                if(spineComp != null)
+                {
+                    spineComp.setAnimation(0, "run", true);
+                }
+
+                this.updatePathToPlayer();
+
+                this._FSMTransitionBlocked = true;
+
+                this.scheduleOnce(()=>
+                {
+                    this._FSMTransitionBlocked = false;
+                }, 0.25);
             }, 
             (context:EnemyFSMContext)=>
             {
@@ -210,14 +269,25 @@ export namespace Maze_EnemyBase
             // Declaration of transitions
 
             var From_Idle_To_ChasingPlayerTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_ChasingPlayer, idleState, chasingPlayerState);
-            var From_ChasingPlayer_To_IdleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Idle, chasingPlayerState, idleState);
             var From_Idle_To_BypassObstacleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_BypassObstacle, idleState, bypassObstacleState);
-            var From_BypassObstacle_To_IdleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Idle, bypassObstacleState, idleState);
-            var From_ChasingPlayer_To_BypassObstacleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_BypassObstacle, chasingPlayerState, bypassObstacleState);
-            var From_BypassObstacle_To_ChasingPlayerTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_ChasingPlayer, bypassObstacleState, chasingPlayerState);
+            var From_Idle_To_BypassObstacleCornerTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_BypassObstacleCorner, idleState, bypassObstacleCornerState);
             var From_Idle_To_DeathTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Death, idleState, deathState);
+            
+            var From_ChasingPlayer_To_IdleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Idle, chasingPlayerState, idleState);
+            var From_ChasingPlayer_To_BypassObstacleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_BypassObstacle, chasingPlayerState, bypassObstacleState);
+            var From_ChasingPlayer_To_BypassObstacleCornerTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_BypassObstacleCorner, chasingPlayerState, bypassObstacleCornerState);
             var From_ChasingPlayer_To_DeathTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Death, chasingPlayerState, deathState);
+
+            var From_BypassObstacle_To_IdleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Idle, bypassObstacleState, idleState);
+            var From_BypassObstacle_To_ChasingPlayerTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_ChasingPlayer, bypassObstacleState, chasingPlayerState);
+            var From_BypassObstacle_To_BypassObstacleCornerTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_BypassObstacleCorner, bypassObstacleState, bypassObstacleCornerState);
             var From_BypassObstacle_To_DeathTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Death, bypassObstacleState, deathState);
+
+            var From_BypassObstacleCorner_To_IdleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Idle, bypassObstacleCornerState, idleState);
+            var From_BypassObstacleCorner_To_ChasingPlayerTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_ChasingPlayer, bypassObstacleCornerState, chasingPlayerState);
+            var From_BypassObstacleCorner_To_BypassObstacleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_BypassObstacle, bypassObstacleCornerState, bypassObstacleState);
+            var From_BypassObstacleCorner_To_DeathTransitionTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Death, bypassObstacleCornerState, deathState);
+
             var From_Death_To_DestroyTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Destroy, deathState, destroyState);
             var From_Destroy_To_FinalTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Final, destroyState, finalState);
 
@@ -225,15 +295,23 @@ export namespace Maze_EnemyBase
             
             idleState.addTransition( From_Idle_To_ChasingPlayerTransition );
             idleState.addTransition( From_Idle_To_BypassObstacleTransition );
+            idleState.addTransition( From_Idle_To_BypassObstacleCornerTransition );
             idleState.addTransition( From_Idle_To_DeathTransition );
             
             chasingPlayerState.addTransition( From_ChasingPlayer_To_IdleTransition );
             chasingPlayerState.addTransition( From_ChasingPlayer_To_BypassObstacleTransition );
+            chasingPlayerState.addTransition( From_ChasingPlayer_To_BypassObstacleCornerTransition );
             chasingPlayerState.addTransition( From_ChasingPlayer_To_DeathTransition );
 
             bypassObstacleState.addTransition( From_BypassObstacle_To_IdleTransition );
             bypassObstacleState.addTransition( From_BypassObstacle_To_ChasingPlayerTransition );
+            bypassObstacleState.addTransition( From_BypassObstacle_To_BypassObstacleCornerTransition );
             bypassObstacleState.addTransition( From_BypassObstacle_To_DeathTransition );
+
+            bypassObstacleCornerState.addTransition( From_BypassObstacleCorner_To_IdleTransition );
+            bypassObstacleCornerState.addTransition( From_BypassObstacleCorner_To_ChasingPlayerTransition );
+            bypassObstacleCornerState.addTransition( From_BypassObstacleCorner_To_BypassObstacleTransition );
+            bypassObstacleCornerState.addTransition( From_BypassObstacleCorner_To_DeathTransitionTransition );
 
             deathState.addTransition( From_Death_To_DestroyTransition );
 
@@ -249,8 +327,33 @@ export namespace Maze_EnemyBase
             
         }
 
-        start () 
+        start()
         {
+            this._rigidBody = this.node.getComponent(RigidBody2D);
+
+            this._graphicsNode.addComponent(Graphics);
+
+            if(null != this.node.parent)
+            {
+                this.node.parent.addChild(this._graphicsNode);
+                this._graphicsNode.parent = this.node.parent;
+            }
+
+            if(null != this.playerInFocus)
+            {
+
+                this._cursorPlayerGridPositionObserver.setObserverCallback((data:Maze_PlayerCursor.CursorPlayerGridPositionContext) => 
+                {
+                    if(EnemyFSMStateId.BypassObstacle == this._FSM.currentState || 
+                       EnemyFSMStateId.BypassObstacleCorner == this._FSM.currentState)
+                    {
+                        this.updatePathToPlayer();
+                    }
+                });
+
+                this.playerInFocus.cursorPlayerGridPositionSubject.attach(this._cursorPlayerGridPositionObserver);
+            }
+
             var collider2D = this.node.getComponent(Collider2D);
 
             if(null != collider2D)
@@ -259,7 +362,17 @@ export namespace Maze_EnemyBase
             }
 
             this._FSM.init();
-            this._FSM.applyTransition(EnemyFSMTransitions.To_ChasingPlayer);
+            this._FSM.applyTransition(EnemyFSMTransitions.To_BypassObstacle);
+        }
+
+        updatePathToPlayer()
+        {
+            if(null != this.map && null != this.playerInFocus)
+            {
+                this._pathToPlayer = this.map.findPath(this.map.pointToTile(Maze_Common.toVec2(this.node.worldPosition)), this.map.pointToTile(Maze_Common.toVec2(this.playerInFocus.node.worldPosition)));
+
+                this.drawBypassObstaclePath();
+            }
         }
 
         onBeginContact (selfCollider:Collider2D, otherCollider:Collider2D, contact:IPhysics2DContact) 
@@ -283,12 +396,12 @@ export namespace Maze_EnemyBase
                     }
                 }
 
-                // var wall = otherCollider.node.getComponent(Maze_GraphicsWall.GraphicsWall);
+                var wall = otherCollider.node.getComponent(Maze_GraphicsWall.GraphicsWall);
 
-                // if(null != wall)
-                // {
-                //     this._FSM.applyTransition(EnemyFSMTransitions.To_BypassObstacle);
-                // }
+                if(null != wall)
+                {
+                    this._FSM.applyTransition(EnemyFSMTransitions.To_BypassObstacleCorner);
+                }
             }
         }
 
@@ -296,28 +409,153 @@ export namespace Maze_EnemyBase
         {
             var movementVec = new Vec3();
         
-            if(null != this.playerInFocus)
+            if(EnemyFSMStateId.ChasingPlayer == this._FSM.currentState)
             {
-                var playerPositionWorldCoord = this.playerInFocus.node.worldPosition.clone();
-                var directionToPlayerWorldCoord = playerPositionWorldCoord.subtract( this.node.worldPosition ).normalize();
+                if(null != this.playerInFocus)
+                {
+                    var playerPositionWorldCoord = this.playerInFocus.node.worldPosition.clone();
+                    var directionToPlayerWorldCoord = playerPositionWorldCoord.subtract( this.node.worldPosition ).normalize();
 
-                movementVec.x = directionToPlayerWorldCoord.x * this.acceleration * this.walkForce;
-                movementVec.y = directionToPlayerWorldCoord.y * this.acceleration * this.walkForce;
+                    movementVec.x = directionToPlayerWorldCoord.x * this.acceleration * this.walkForce;
+                    movementVec.y = directionToPlayerWorldCoord.y * this.acceleration * this.walkForce;
+                }
+            }
+            else if(EnemyFSMStateId.BypassObstacle == this._FSM.currentState ||
+                    EnemyFSMStateId.BypassObstacleCorner == this._FSM.currentState)
+            {
+                if(null != this.map)
+                {
+                    if(0 != this._pathToPlayer.length)
+                    {
+                        var vecLength = this._pathToPlayer[0].clone().subtract(Maze_Common.toVec2(this.node.worldPosition)).length();
+
+                        if(Math.abs(vecLength) < 10)
+                        {
+                            this._pathToPlayer.shift();
+                        }
+
+                        if(0 != this._pathToPlayer.length)
+                        {
+                            var directionToPlayerWorldCoord_:Vec2 = this._pathToPlayer[0].clone().subtract(Maze_Common.toVec2(this.node.worldPosition)).normalize();
+
+                            movementVec.x = directionToPlayerWorldCoord_.x * this.acceleration * this.walkForce;
+                            movementVec.y = directionToPlayerWorldCoord_.y * this.acceleration * this.walkForce;
+                        }
+                    }
+                }
             }
 
             return movementVec;
         }
 
-        update_ChasingLogic(deltaTime:number)
+        drawChasingPath()
         {
-            var rigidBody = this.getComponent(RigidBody2D);
-
-            if(rigidBody != null)
+            if(true == this.debug)
             {
-                var movementVec = this.getMovementVec().clone();
+                var graphics = this._graphicsNode.getComponent(Graphics);
 
-                if( rigidBody.linearVelocity.x < this.velocityMax ||
-                rigidBody.linearVelocity.x > -this.velocityMax)
+                if(null != graphics)
+                {
+                    var uiTransform = graphics.getComponent(UITransform);
+
+                    if(null != uiTransform)
+                    {
+                        var localStartPosition = uiTransform.convertToNodeSpaceAR(this.node.worldPosition);
+                        var localEndPosition = uiTransform.convertToNodeSpaceAR(this.playerInFocus.node.worldPosition);
+                        graphics.clear();
+                        graphics.moveTo(localStartPosition.x,localStartPosition.y);
+                        graphics.lineTo(localEndPosition.x,localEndPosition.y);
+                        graphics.close();
+                        graphics.stroke();
+                    }
+                }
+            }
+        }
+
+        drawBypassObstaclePath()
+        {
+            if(true == this.debug)
+            {
+                var graphics = this._graphicsNode.getComponent(Graphics);
+
+                if(null != graphics)
+                {
+                    graphics.clear();
+
+                    var uiTransform = graphics.getComponent(UITransform);
+
+                    if(null != uiTransform)
+                    {
+                        var localStartPosition = uiTransform.convertToNodeSpaceAR(this.node.worldPosition);
+                        graphics.moveTo(localStartPosition.x, localStartPosition.y);
+                        graphics.strokeColor = new math.Color(255,0,0);
+                        graphics.lineWidth = 20;
+                        
+                        if(0 != this._pathToPlayer.length)
+                        {
+                            for(var pathElement of this._pathToPlayer)
+                            {
+                                var localVertexPosition = uiTransform.convertToNodeSpaceAR(Maze_Common.toVec3(pathElement));
+                                graphics.lineTo(localVertexPosition.x, localVertexPosition.y);
+                            }
+                        }
+
+                        graphics.stroke();
+                    }
+                }
+            }
+        }
+
+        determineStateRayCast()
+        {
+            if(false ==  this._FSMTransitionBlocked)
+            {
+                if(this._rigidBody != null)
+                {
+                    if(null != this.playerInFocus)
+                    {
+                        var raycastResult = PhysicsSystem2D.instance.raycast(this.node.worldPosition, this.playerInFocus.node.worldPosition, ERaycast2DType.All);
+
+                        var collideWithWall:boolean = false;
+
+                        for(var raycastElement of raycastResult)
+                        {
+                            if(raycastElement.collider.group == 1 << this.wallCollisionGroup)
+                            {
+                                collideWithWall = true;
+                                break;
+                            }
+                        }
+
+                        if(false == collideWithWall)
+                        {
+                            this._FSM.applyTransition(EnemyFSMTransitions.To_ChasingPlayer);
+                        }
+                        else
+                        {
+                            this._FSM.applyTransition(EnemyFSMTransitions.To_BypassObstacle);
+                            this.drawBypassObstaclePath();
+                        }
+
+                        if(this._FSM.currentState == EnemyFSMStateId.ChasingPlayer)
+                        {
+                            this.drawChasingPath();
+                        }
+                    }
+                }
+            }
+        }
+
+        update_logic(deltaTime:number)
+        {
+            this.determineStateRayCast();
+
+            if(this._rigidBody != null)
+            {
+                var movementVec = this.getMovementVec();
+
+                if( this._rigidBody.linearVelocity.x < this.velocityMax ||
+                    this._rigidBody.linearVelocity.x > -this.velocityMax)
                 {
                     movementVec.x *= deltaTime;
                 }
@@ -326,8 +564,8 @@ export namespace Maze_EnemyBase
                     movementVec.x = 0;
                 }
 
-                if( rigidBody.linearVelocity.y < this.velocityMax ||
-                rigidBody.linearVelocity.y > -this.velocityMax)
+                if( this._rigidBody.linearVelocity.y < this.velocityMax ||
+                    this._rigidBody.linearVelocity.y > -this.velocityMax)
                 {
                     movementVec.y *= deltaTime;
                 }
@@ -336,34 +574,43 @@ export namespace Maze_EnemyBase
                     movementVec.y = 0;
                 }
 
-                rigidBody.applyForceToCenter( Maze_Common.toVec2(movementVec), true );
+                this._rigidBody.applyForceToCenter( Maze_Common.toVec2(movementVec), true );
             }
 
-            if(null != this.playerInFocus)
+            var targetWorldCoord = new Vec3();
+
+            if(EnemyFSMStateId.ChasingPlayer == this._FSM.currentState)
             {
-                var nodeWorldCoord = this.node.worldPosition
-                var playerWorldCoord = this.playerInFocus.node.worldPosition;
-
-                var lookAtVec:Vec2 = new Vec2();
-
-                lookAtVec.x = playerWorldCoord.x - nodeWorldCoord.x;
-                lookAtVec.y = playerWorldCoord.y - nodeWorldCoord.y;
-
-                var eyeDirection2D = new Vec2(this.eyesDirection.x, this.eyesDirection.y);
-                var andgleRad:number = eyeDirection2D.signAngle( lookAtVec );
-                var angleDeg:number = Math.floor( misc.radiansToDegrees(andgleRad) );
-
-                if(Math.abs(angleDeg - this._currentAngle) > 10)
+                if(null != this.playerInFocus)
                 {
-                    this.node.setRotationFromEuler( 0, 0, angleDeg );
-                    this._currentAngle = angleDeg;
+                    targetWorldCoord = this.playerInFocus.node.worldPosition;
                 }
             }
-        }
+            else if(EnemyFSMStateId.BypassObstacle == this._FSM.currentState ||
+                    EnemyFSMStateId.BypassObstacleCorner == this._FSM.currentState)
+            {
+                if(0 != this._pathToPlayer.length)
+                {
+                    targetWorldCoord = Maze_Common.toVec3( this._pathToPlayer[0] );
+                }
+            }
 
-        update_BypassObstacle(deltaTime:number)
-        {
+            var nodeWorldCoord = this.node.worldPosition;
 
+            var lookAtVec:Vec2 = new Vec2();
+
+            lookAtVec.x = targetWorldCoord.x - nodeWorldCoord.x;
+            lookAtVec.y = targetWorldCoord.y - nodeWorldCoord.y;
+
+            var eyeDirection2D = new Vec2(this.eyesDirection.x, this.eyesDirection.y);
+            var andgleRad:number = eyeDirection2D.signAngle( lookAtVec );
+            var angleDeg:number = Math.floor( misc.radiansToDegrees(andgleRad) );
+
+            if(Math.abs(angleDeg - this._currentAngle) > 10)
+            {
+                this.node.setRotationFromEuler( 0, 0, angleDeg );
+                this._currentAngle = angleDeg;
+            }
         }
 
         update_HandlingDelayedActions()
@@ -372,13 +619,11 @@ export namespace Maze_EnemyBase
 
             if(true == this._isTurnOffCollision)
             {
-                var rigidBody = this.getComponent(RigidBody2D);
-
-                if(rigidBody != null)
+                if(this._rigidBody != null)
                 {
-                    if(null != rigidBody)
+                    if(null != this._rigidBody)
                     {
-                        rigidBody.enabled = false;
+                        this._rigidBody.enabled = false;
                     }
 
                     this._isTurnOffCollision = false;
@@ -401,6 +646,22 @@ export namespace Maze_EnemyBase
             if(EnemyFSMStateId.Destroy == this._FSM.currentState)
             {
                 this._FSM.applyTransition(EnemyFSMTransitions.To_Final);
+
+                if(null != this._graphicsNode)
+                {
+                    if(null != this.node.parent)
+                    {
+                        this.node.parent.removeChild(this._graphicsNode);
+                        this.node.addChild(this._graphicsNode);
+                        this._graphicsNode.parent = this.node;
+                    }
+                }
+
+                if(null != this.playerInFocus)
+                {
+                    this.playerInFocus.cursorPlayerGridPositionSubject.detach(this._cursorPlayerGridPositionObserver); 
+                }
+
                 this.node.destroy();
             }
         }
@@ -409,15 +670,7 @@ export namespace Maze_EnemyBase
         {
             if(true == this.node.isValid)
             {
-                if(EnemyFSMStateId.ChasingPlayer == this._FSM.currentState)
-                {
-                    this.update_ChasingLogic(deltaTime);
-                }
-                else if(EnemyFSMStateId.BypassObstacle == this._FSM.currentState)
-                {
-                    this.update_BypassObstacle(deltaTime);
-                }
-
+                this.update_logic(deltaTime);
                 this.update_HandlingDelayedActions();
             }
         }
