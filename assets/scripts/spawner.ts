@@ -1,4 +1,4 @@
-import { _decorator, Component, resources, Prefab, Node, error, Vec3, instantiate, randomRange, tween, sp, Color, math, Rect, Intersection2D, Vec2, randomRangeInt } from 'cc';
+import { _decorator, Component, resources, Prefab, Node, error, Vec3, instantiate, randomRange, tween, sp, Color, math, Rect, Intersection2D, Vec2, Graphics, randomRangeInt } from 'cc';
 import { Maze_PlayerCursor } from './playerCursor';
 import { Maze_EnemyBase } from './enemyBase';
 import { Maze_Common } from './common';
@@ -25,6 +25,19 @@ export class Spawner extends Component
 
     @property
     maxMonsterNumber:number = 30;
+
+    @property (Graphics)
+    private _sharedGraphics:Graphics|null = null;
+
+    @property (Graphics)
+    set SharedGraphics(val:Graphics|null)
+    {
+        this._sharedGraphics = val;
+    }
+    get SharedGraphics():Graphics|null
+    {
+        return this._sharedGraphics;
+        }
 
     private _monster:Prefab|null = null;
     private _monsterLoaded:boolean = false;
@@ -71,6 +84,7 @@ export class Spawner extends Component
 
                 if(null != enemyBase && null != this.map)
                 {
+                    enemyBase.map = this.map;
                     enemyBase.addDeathNotificationCallback(this.onMonsterDead.bind(this));
 
                     enemyBase.playerInFocus = this.player;
@@ -85,15 +99,8 @@ export class Spawner extends Component
                     var creationTileIndex = randomRangeInt(0, walkableTiles.length);
                     var creationTile = walkableTiles[creationTileIndex];
 
-                    try
-                    {
-                        var creationPos:Vec2 = this.map.tileToPoint(creationTile);
-                        monsterInstance.setWorldPosition(new Vec3(creationPos.x, creationPos.y, 0));
-                    }
-                    catch
-                    {
-                        console.log("Error!");
-                    }
+                    var creationPos:Vec2 = this.map.tileToPoint(creationTile);
+                    monsterInstance.setWorldPosition(new Vec3(creationPos.x, creationPos.y, 0));
                 }
                 else
                 {

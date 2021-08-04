@@ -1,10 +1,20 @@
-import { _decorator, Component, Node, Prefab, Vec2, instantiate, Vec3, UITransform, Graphics, ResolutionPolicy, math, randomRangeInt } from 'cc';
+import { _decorator, Component, Node, Prefab, Vec2, instantiate, Vec3, UITransform, Graphics, ResolutionPolicy, math, randomRangeInt, Label } from 'cc';
 import { Maze_GraphicsWall } from '../wall/graphicsWall';
 import { Maze_MazeGenerator } from '../maze/mazeGenerator';
+import { Maze_PriorityQueue } from '../common/priorityQueue/priorityQueue.ts';
+import { Maze_Common } from '../common';
 const { ccclass, property } = _decorator;
 
 export namespace Maze_MapBuilder
 {
+    enum eNeighbourType
+    {
+        TOP = 0,
+        RIGHT = 1,
+        BOTTOM = 2,
+        LEFT = 3
+    }
+
     class MapNode
     {
         private _x:number;
@@ -85,6 +95,16 @@ export namespace Maze_MapBuilder
             return this._representationNode;
         }
 
+        private _label:Node|null = null;
+        public set label(val:Node|null)
+        {
+            this._label = val;
+        }
+        public get label():Node|null
+        {
+            return this._label;
+        }
+
         private _visited:boolean = false;
         public set visited(val:boolean)
         {
@@ -94,9 +114,118 @@ export namespace Maze_MapBuilder
         {
             return this._visited;
         }
+
+        public get cost():number
+        {
+            return 1;
+        }
+
+        public getAllNotVisitedNeighbours():Map<eNeighbourType,MapNode>
+        {
+            var neighbours:Map<eNeighbourType,MapNode> = new Map<eNeighbourType,MapNode>();
+
+            if(null != this.leftSibling && false == this.leftSibling.visited)
+            {
+                neighbours.set(eNeighbourType.LEFT, this.leftSibling);
+            }
+
+            if(null != this.rightSibling && false == this.rightSibling.visited)
+            {
+                neighbours.set(eNeighbourType.RIGHT, this.rightSibling);
+            }
+
+            if(null != this.topSibling && false == this.topSibling.visited)
+            {
+                neighbours.set(eNeighbourType.TOP, this.topSibling);
+            }
+
+            if(null != this.bottomSibling && false == this.bottomSibling.visited)
+            {
+                neighbours.set(eNeighbourType.BOTTOM, this.bottomSibling);
+            }
+
+            return neighbours;
+        }
+
+        public getAllVisitedNeighbours():Map<eNeighbourType,MapNode>
+        {
+            var neighbours:Map<eNeighbourType,MapNode> = new Map<eNeighbourType,MapNode>();
+
+            if(null != this.leftSibling && true == this.leftSibling.visited)
+            {
+                neighbours.set(eNeighbourType.LEFT, this.leftSibling);
+            }
+
+            if(null != this.rightSibling && true == this.rightSibling.visited)
+            {
+                neighbours.set(eNeighbourType.RIGHT, this.rightSibling);
+            }
+
+            if(null != this.topSibling && true == this.topSibling.visited)
+            {
+                neighbours.set(eNeighbourType.TOP, this.topSibling);
+            }
+
+            if(null != this.bottomSibling && true == this.bottomSibling.visited)
+            {
+                neighbours.set(eNeighbourType.BOTTOM, this.bottomSibling);
+            }
+
+            return neighbours;
+        }
+
+        public getRandomNotVisitedNeighbour():[eNeighbourType,MapNode]|undefined
+        {
+            var neighbours = this.getAllNotVisitedNeighbours();
+
+            if(neighbours.size > 0)
+            {
+                var targetIndex = randomRangeInt(0, neighbours.size);
+                var i:number = 0;
+                for(var neighbourInfo of neighbours)
+                {
+                    if(i == targetIndex)
+                    {
+                        return neighbourInfo;
+                        break;
+                    }
+                    
+                    i += 1;
+                }
+            }
+            else
+            {
+                return undefined;
+            }
+        }
+
+        public getRandomVisitedNeighbour():[eNeighbourType,MapNode]|undefined
+        {
+            var neighbours = this.getAllVisitedNeighbours();
+
+            if(neighbours.size > 0)
+            {
+                var targetIndex = randomRangeInt(0, neighbours.size);
+                var i:number = 0;
+                for(var neighbourInfo of neighbours)
+                {
+                    if(i == targetIndex)
+                    {
+                        return neighbourInfo;
+                        break;
+                    }
+                    
+                    i += 1;
+                }
+            }
+            else
+            {
+                return undefined;
+            }
+        }
     }
 
-    class Map
+    class LevelMap
     {
         private _mapNodes:MapNode[][] = [];
         public get MapNodes():MapNode[][]
@@ -114,6 +243,7 @@ export namespace Maze_MapBuilder
 
         private generateMaze()
         {
+            this.resetVisitFlag();
             
             // We need to check what would be the effective size of the maze, that we are working with.
             // Only 2*y + 1 rows and 2*x + 1 columns would be used in generation 
@@ -284,7 +414,14 @@ export namespace Maze_MapBuilder
             }
         }
 
-        constructor( parentNode:Node, sharedGraphics:Graphics, width:number, height:number, mapNodeSize:number, floorPrefab:Prefab, wallPrefab:Prefab )
+        constructor( parentNode:Node, 
+            sharedGraphics:Graphics, 
+            width:number, 
+            height:number, 
+            mapNodeSize:number, 
+            floorPrefab:Prefab, 
+            wallPrefab:Prefab, 
+            debug:boolean )
         {
             if(null != sharedGraphics)
             {
@@ -373,7 +510,7 @@ export namespace Maze_MapBuilder
                             graphicsWall.Dimensions = new Vec2(this._mapNodeSize, this._mapNodeSize);
                             graphicsWall.SharedGraphics = this._sharedGraphics;
                             graphicsWall.ExcludeFromCenterFactor = 0.9;
-                            graphicsWall.NumberOfVertices = 20
+                            graphicsWall.NumberOfVertices = 25
                         }
                     }
         
@@ -386,6 +523,22 @@ export namespace Maze_MapBuilder
                     var y = leftBottomPoint.y + ( ( this._height - row ) * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
         
                     mapNode.representationNode.setWorldPosition( new Vec3( x, y, 0  ) );
+
+                    if(true == debug)
+                    {
+                        mapNode.label = new Node();
+                        this._parentNode.addChild(mapNode.label);
+                        mapNode.label.parent = this._parentNode;
+                        mapNode.label.addComponent(Label);
+                        mapNode.label.setWorldPosition(new Vec3( x, y, 0  )); 
+
+                        var label = mapNode.label.getComponent(Label);
+
+                        if(null != label)
+                        {
+                            label.string = String(mapNode.x) + ", " + String(mapNode.y);
+                        }
+                    }
                 }
             }
         }
@@ -396,6 +549,116 @@ export namespace Maze_MapBuilder
             var x = parentWorldPosition.x - ( this._width * this._mapNodeSize / 2 );
             var y = parentWorldPosition.y - ( this._height * this._mapNodeSize / 2 );
             return new Vec2(x,y);
+        }
+
+        public resetVisitFlag()
+        {
+            for(var row:number = 0; row < this._height; ++row)
+            {
+                for(var column:number = 0; column < this._width; ++column)
+                {
+                    this.MapNodes[row][column].visited = false;
+                }
+            }
+        }
+
+        findPath(start:MapNode, finish:MapNode) : MapNode[]
+        {
+            var result:MapNode[] = [];
+
+            this.resetVisitFlag();
+
+            class MapNodePrioritized
+            {
+                mapNode:MapNode;
+                priority:number;
+
+                constructor(mapNode:MapNode, priority:number)
+                {
+                    this.mapNode = mapNode;
+                    this.priority = priority;
+                }
+            };
+
+            const numberCompare = ((a:MapNodePrioritized, b:MapNodePrioritized) => a.priority - b.priority);
+
+            var frontier:Maze_PriorityQueue.PriorityQueue<MapNodePrioritized> = new Maze_PriorityQueue.PriorityQueue<MapNodePrioritized>({comparator: numberCompare, initialValues: []});
+            frontier.queue( new MapNodePrioritized(start, 0) );
+            start.visited = true;
+            var came_from:Map<MapNode,MapNode|null> = new Map<MapNode,MapNode>();
+            var cost_so_far:Map<MapNode, number> = new Map<MapNode, number>();
+
+            came_from.set(start, null);
+            cost_so_far.set(start, 0);
+
+            while(0 != frontier.length)
+            {
+                var current:MapNodePrioritized = frontier.dequeue();
+
+                if(current.mapNode == finish)
+                {
+                    result.push(finish);
+
+                    var backtrace_node = came_from.get(finish);
+
+                    while(backtrace_node != start && null != backtrace_node)
+                    {
+                        result.push(backtrace_node);
+                        backtrace_node = came_from.get(backtrace_node);
+                    }
+
+                    result.reverse();
+
+                    break;
+                }
+
+                var cost_so_far_for_current_node = cost_so_far.get(current.mapNode);
+                if(undefined !== cost_so_far_for_current_node)
+                {
+                    var neighbours = current.mapNode.getAllNotVisitedNeighbours();
+
+                    for(var next of neighbours)
+                    {   
+                        if(true == next[1].isWalkable) // skip the walls
+                        {
+                            var new_cost:number = cost_so_far_for_current_node + next[1].cost;
+                            
+                            var cost_so_far_for_next_node = cost_so_far.get(next[1]);
+
+                            if(undefined === cost_so_far_for_next_node)
+                            {
+                                cost_so_far.set(next[1], new_cost);
+                                var priority:number = new_cost + this.heuristic(finish.y, finish.x, next[1].y, next[1].x);
+                                frontier.queue( new MapNodePrioritized(next[1], priority) );
+                                came_from.set(next[1], current.mapNode);
+                                next[1].visited = true;
+                            }
+                            else if(new_cost < cost_so_far_for_next_node)
+                            {
+                                cost_so_far.set(next[1], new_cost);
+                                var priority:number = new_cost + this.heuristic(finish.y, finish.x, next[1].y, next[1].x);
+                                frontier.queue( new MapNodePrioritized(next[1], priority) );
+                                came_from.set(next[1], current.mapNode);
+                                next[1].visited = true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw("Error - undefined === cost_so_far_for_current_node");
+                }
+
+                
+            }
+
+            return result;
+        }
+
+        // Manhattan distance on a square grid
+        private heuristic(rowA:number, colA:number, rowB:number, colB:number):number
+        {
+            return Math.abs(colA - colB) + Math.abs(rowA - rowB);
         }
     }
 
@@ -480,6 +743,9 @@ export namespace Maze_MapBuilder
             return this._wallPrefab;
         }
 
+        @property
+        Debug:boolean = false;
+
         public getLeftBottompWorldPosition() : Vec2
         {
             var result:Vec2 = new Vec2();
@@ -498,13 +764,13 @@ export namespace Maze_MapBuilder
 
             result = point.clone().subtract(this.getLeftBottompWorldPosition());
 
-            result.x = Math.ceil(result.x / this._mapNodeSize);
+            result.x = Math.ceil(result.x / this._mapNodeSize) - 1;
             result.y = Math.ceil(this.Height - ( result.y / this._mapNodeSize ) );
 
             return result;
         }
 
-        private _map:Map|null = null;
+        private _map:LevelMap|null = null;
 
         createMap()
         {
@@ -513,7 +779,7 @@ export namespace Maze_MapBuilder
             if(null != this._floorPrefab && null != this._wallPrefab && null != this._sharedGraphics)
             {
                 this.node.removeAllChildren();
-                this._map = new Map( this.node, this._sharedGraphics, this._width, this._height, this._mapNodeSize, this._floorPrefab, this._wallPrefab );
+                this._map = new LevelMap( this.node, this._sharedGraphics, this._width, this._height, this._mapNodeSize, this._floorPrefab, this._wallPrefab, this.Debug );
             }
         }
 
@@ -553,14 +819,80 @@ export namespace Maze_MapBuilder
             return result;
         }
 
+        filterWalkableTiles2( range:math.Rect ) : Vec2[]
+        {
+            var result:Vec2[] = []
+
+            if(null != this._map)
+            {
+                for(var row:number = range.y; row < range.y + range.height; ++row)
+                {
+                    for(var column:number = range.x; column < range.x + range.width; ++column)
+                    {
+                        try
+                        {
+                            if( ( column >= 0 && row >= 0 ) && true == this._map.MapNodes[row][column].isWalkable )
+                            {
+                                result.push(new Vec2(column, row));
+                            }
+                        }
+                        catch
+                        {
+                            console.log("Error!");
+                        }
+
+                    }
+                }
+            }
+
+            return result;
+        }
+
         tileToPoint(tile:Vec2)
         {
             var result:Vec2 = new Vec2();
 
             var leftBottomPoint = this.getLeftBottompWorldPosition();
 
-            result.x = leftBottomPoint.x + (tile.x * this._mapNodeSize);
-            result.y = leftBottomPoint.y + ( (this.Height - tile.y) * this._mapNodeSize);
+            result.x = leftBottomPoint.x + (tile.x * this._mapNodeSize) + (this._mapNodeSize / 2);
+            result.y = leftBottomPoint.y + ( (this.Height - tile.y) * this._mapNodeSize) + (this._mapNodeSize / 2);
+
+            return result;
+        }
+
+        findPath(start:Vec2, finish:Vec2) : Vec2[]
+        {
+            var result:Vec2[] = [];
+
+            if(null != this._map)
+            {
+                if(start.x > 0 && start.x < this._height 
+                && start.y > 0 && start.y < this._width
+                && finish.x > 0 && finish.x < this._height 
+                && finish.y > 0 && finish.y < this._width)
+                {
+                    var path = this._map.findPath(this._map.MapNodes[start.y][start.x], this._map.MapNodes[finish.y][finish.x]);
+
+                    for(var node of path)
+                    {
+                        if(null != node)
+                        {
+                            if(null != node.representationNode)
+                            {
+                                result.push( Maze_Common.toVec2( node.representationNode.worldPosition ) );
+                            }
+                            else
+                            {
+                                throw("Error! null == nodeInstance.representationNode!");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw("Error! Wrong input parameters!");
+                }
+            }
 
             return result;
         }

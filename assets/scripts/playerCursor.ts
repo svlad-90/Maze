@@ -1,17 +1,46 @@
-import { _decorator, Vec2, Vec3, RigidBody2D, misc, } from 'cc';
+import { _decorator, Vec2, Vec3, RigidBody2D, misc, Event } from 'cc';
 import { Maze_Common } from './common';
 import { Maze_PlayerBase } from './playerBase'
 import { Maze_GlobalMouseListener } from './globalMouseListener'
 import { Maze_EasyReference } from './easyReference'
+import { Maze_Observer } from './observer/observer';
 
 const { ccclass, property } = _decorator;
 
 export namespace Maze_PlayerCursor
 {
+    export class CursorPlayerGridPositionContext 
+    {
+        constructor(playerPosition:Vec2, player:Maze_PlayerCursor.PlayerCursor )
+        {
+            this.playerPosition = playerPosition;
+            this.player = player;
+        }
+        playerPosition:Vec2; 
+        player:Maze_PlayerCursor.PlayerCursor;
+    }
+
     @ccclass('PlayerCursor')
     export class PlayerCursor extends Maze_PlayerBase.PlayerBase 
     {
         private easyReference:Maze_EasyReference.EasyReference|null = null;
+
+        public cursorPlayerGridPositionSubject:Maze_Observer.Subject<CursorPlayerGridPositionContext> = 
+        new Maze_Observer.Subject<CursorPlayerGridPositionContext>();
+
+        private _gridPosition:Vec2 = new Vec2(0,0);
+        protected set gridPosition(val:Vec2)
+        {
+            if(false == this._gridPosition.equals(val))
+            {
+                this._gridPosition = val;
+                this.cursorPlayerGridPositionSubject.notify( new CursorPlayerGridPositionContext(this._gridPosition, this) );
+            }
+        }
+        public get gridPosition() : Vec2
+        {
+            return this._gridPosition;
+        }
 
         public onLoad()
         {
@@ -109,6 +138,12 @@ export namespace Maze_PlayerCursor
                         //console.log("this.node.rotation - ", this.node.rotation);
                     }
                 }
+            }
+
+            if(null != this.map)
+            {
+                var newGridPosition = this.map.pointToTile(Maze_Common.toVec2(this.node.worldPosition));
+                this.gridPosition = newGridPosition;
             }
         }
     }

@@ -1,7 +1,8 @@
 import { _decorator, Component, Vec3, macro, EventKeyboard, SystemEventType, systemEvent, 
-    EventMouse, sp, Director, Camera, Canvas, Scene } from 'cc';
+    EventMouse, sp, Director, Camera, Canvas, Scene, Rect, randomRangeInt, Vec2 } from 'cc';
 import { Maze_GlobalMouseListener } from './globalMouseListener'
 import { Maze_WeaponCursor } from './weaponCursor';
+import { Maze_MapBuilder } from './map/mapBuilder'
 
 const { property } = _decorator;
 
@@ -25,6 +26,9 @@ export namespace Maze_PlayerBase
     
         @property
         velocityMax:number = 0;
+
+        @property (Maze_MapBuilder.MapBuilder)
+        map:Maze_MapBuilder.MapBuilder|null = null;
 
         private _moveDirections = new Set<eMoveDirection>();
         protected set moveDirections(val:Set<eMoveDirection>)
@@ -58,6 +62,17 @@ export namespace Maze_PlayerBase
 
         public start() 
         {
+            if(null != this.map)
+            {
+                var walkableTiles = this.map.filterWalkableTiles2( new Rect( 0, 0, this.map.Width, this.map.Height ) );
+
+                var creationTileIndex = randomRangeInt(0, walkableTiles.length);
+                var creationTile = walkableTiles[creationTileIndex];
+
+                var creationPos:Vec2 = this.map.tileToPoint(creationTile);
+                this.node.setWorldPosition(new Vec3(creationPos.x, creationPos.y, 0));
+            }
+
             this.node.addComponent(Maze_GlobalMouseListener.GlobalMouseListener);
 
             systemEvent.on(SystemEventType.KEY_DOWN, this.onKeyDown, this);
