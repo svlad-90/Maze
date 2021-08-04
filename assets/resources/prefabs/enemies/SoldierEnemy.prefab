@@ -42,8 +42,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -89,
-      "y": 270,
+      "x": -324,
+      "y": 2,
       "z": 0
     },
     "_lrot": {
@@ -186,7 +186,7 @@
     },
     "tag": 0,
     "_group": 2,
-    "_density": 0,
+    "_density": 50,
     "_sensor": false,
     "_friction": 0.5,
     "_restitution": 0,
@@ -358,7 +358,7 @@
       "__uuid__": "2d3ec558-f894-4ed3-8a42-4d578b27fa70",
       "__expectedType__": "cc.Prefab"
     },
-    "fireRate": 2,
+    "fireRate": 0.5,
     "bulletTimeAlive": 2,
     "bulletSpeed": 5,
     "damage": 10,
@@ -388,8 +388,8 @@
       "y": 1,
       "z": 0
     },
-    "acceleration": 18,
-    "velocityMax": 18,
+    "acceleration": 10,
+    "velocityMax": 10,
     "debug": false,
     "wallCollisionGroup": 2,
     "_id": ""

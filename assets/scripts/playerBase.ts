@@ -1,8 +1,9 @@
 import { _decorator, Component, Vec3, macro, EventKeyboard, SystemEventType, systemEvent, 
-    EventMouse, sp, Director, Camera, Canvas, Scene, Rect, randomRangeInt, Vec2 } from 'cc';
+    EventMouse, sp, Director, Camera, Canvas, Scene, Rect, randomRangeInt, Vec2, Collider2D, Contact2DType, IPhysics2DContact, RigidBody2D } from 'cc';
 import { Maze_GlobalMouseListener } from './globalMouseListener'
 import { Maze_WeaponCursor } from './weaponCursor';
 import { Maze_MapBuilder } from './map/mapBuilder'
+import { Maze_BulletBase } from './bulletBase';
 
 const { property } = _decorator;
 
@@ -50,7 +51,7 @@ export namespace Maze_PlayerBase
             return this._currentMoveDirection;
         }
 
-        private _walkForce:number = 350;
+        private _walkForce:number = 200000;
         public get walkForce() : number
         {
             return this._walkForce;
@@ -73,6 +74,13 @@ export namespace Maze_PlayerBase
                 this.node.setWorldPosition(new Vec3(creationPos.x, creationPos.y, 0));
             }
 
+            var collider2D = this.node.getComponent(Collider2D);
+            if(null != collider2D)
+            {
+                collider2D.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+                collider2D.on(Contact2DType.PRE_SOLVE, this.onPresolve, this);
+            }
+
             this.node.addComponent(Maze_GlobalMouseListener.GlobalMouseListener);
 
             systemEvent.on(SystemEventType.KEY_DOWN, this.onKeyDown, this);
@@ -85,6 +93,40 @@ export namespace Maze_PlayerBase
             if(spineComp != null)
             {
                 spineComp.setAnimation(0, "idle", true);
+            }
+        }
+
+        onBeginContact (selfCollider:Collider2D, otherCollider:Collider2D, contact:IPhysics2DContact) 
+        {
+            if(true == this.node.isValid)
+            {
+                var bullet = otherCollider.node.getComponent(Maze_BulletBase.BulletBase);
+
+                if(null != bullet)
+                { 
+                    if(true == bullet.isDamageActive)
+                    {
+                        bullet.deactivate();
+                    }
+                }
+            }
+        }
+
+        onPresolve (selfCollider:Collider2D, otherCollider:Collider2D, contact:IPhysics2DContact) 
+        {
+            if(true == this.node.isValid)
+            {
+                var bullet = otherCollider.node.getComponent(Maze_BulletBase.BulletBase);
+
+                if(null != bullet)
+                { 
+                    if(true == bullet.isDamageActive)
+                    {
+                        bullet.deactivate();
+                    }
+
+                    contact.disabled = true;
+                }
             }
         }
 

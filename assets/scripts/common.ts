@@ -254,5 +254,15 @@ export namespace Maze_Common
         return result;
     }
 
+    export function perpendicularClockwise(vec:Vec2):Vec2
+    {
+        return new Vec2(vec.y, -vec.x);
+    }
+
+    export function perpendicularCounterClockwise(vec:Vec2):Vec2
+    {
+        return new Vec2(-vec.y, vec.x);
+    }
+
     /////////////////////// Polygon generation algorithm END ///////////////////////
 }

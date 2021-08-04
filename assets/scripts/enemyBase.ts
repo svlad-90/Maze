@@ -8,6 +8,7 @@ import { Maze_FSM } from './common/FSM/FSM';
 import { Maze_MapBuilder } from './map/mapBuilder'
 import { Maze_GraphicsWall } from './wall/graphicsWall';
 import { Maze_Observer } from './observer/observer';
+import { Maze_DebugGraphics } from './common/debugGraphics';
 const { ccclass, property } = _decorator;
 
 export namespace Maze_EnemyBase
@@ -72,7 +73,7 @@ export namespace Maze_EnemyBase
         private _cursorPlayerGridPositionObserver:Maze_Observer.Observer<Maze_PlayerCursor.CursorPlayerGridPositionContext> 
         = new Maze_Observer.Observer<Maze_PlayerCursor.CursorPlayerGridPositionContext>();
         
-        private _graphicsNode:Node = new Node();
+        private _debugGraphics:Maze_DebugGraphics.DebugGraphics|null = null;
 
         private _map:Maze_MapBuilder.MapBuilder|null = null;
         public get map():Maze_MapBuilder.MapBuilder|null
@@ -88,10 +89,8 @@ export namespace Maze_EnemyBase
         private _targetDirection:Vec2 = new Vec2();
         private _movementDirection:number = 0;
         private _rigidBody:RigidBody2D|null = null;
-
         private _isTurnOffCollision:boolean = false;
-
-        private _needToSendDeathNotificationCallbacks:boolean = false; 
+        private _needToSendDeathNotificationCallbacks:boolean = false;
 
         private _deathNotificationCallbacks : (((node:Node) => void) | null)[] = [];
         public addDeathNotificationCallback(val:((node:Node) => void) | null)
@@ -113,7 +112,7 @@ export namespace Maze_EnemyBase
             }
         }
 
-        private _walkForce:number = 300;
+        private _walkForce:number = 200000;
         public get walkForce() : number
         {
             return this._walkForce;
@@ -122,12 +121,13 @@ export namespace Maze_EnemyBase
         private _FSM:EnemyFSM;
         private _pathToPlayer:Vec2[] = [];
 
+        private _uiTransform:UITransform|null = null;
+
         constructor()
         {
             super();
 
             // Declaration of FSM states
-
             var idleState = new EnemyFSMState( EnemyFSMStateId.Idle, (context:EnemyFSMContext)=>
             {
                 // enter
@@ -181,6 +181,12 @@ export namespace Maze_EnemyBase
                 }
 
                 this.updatePathToPlayer();
+
+                var weapon = this.node.getComponent(Maze_WeaponTarget.WeaponTarget);
+                if(null != weapon)
+                {
+                    weapon.fireOff();
+                }
             }, 
             (context:EnemyFSMContext)=>
             {
@@ -227,6 +233,12 @@ export namespace Maze_EnemyBase
                     if(null != weapon)
                     {
                         weapon.fireOff();
+                    }
+
+                    if(null != this._debugGraphics)
+                    {
+                        this._debugGraphics.parent = this.node;
+                        this._debugGraphics.clear();
                     }
                 }
 
@@ -329,15 +341,14 @@ export namespace Maze_EnemyBase
 
         start()
         {
-            this._rigidBody = this.node.getComponent(RigidBody2D);
+            this._uiTransform = this.node.getComponent(UITransform);
 
-            this._graphicsNode.addComponent(Graphics);
-
-            if(null != this.node.parent)
+            if(true == this.debug)
             {
-                this.node.parent.addChild(this._graphicsNode);
-                this._graphicsNode.parent = this.node.parent;
+                this._debugGraphics = new Maze_DebugGraphics.DebugGraphics(this.node.parent);
             }
+
+            this._rigidBody = this.node.getComponent(RigidBody2D);
 
             if(null != this.playerInFocus)
             {
@@ -355,7 +366,6 @@ export namespace Maze_EnemyBase
             }
 
             var collider2D = this.node.getComponent(Collider2D);
-
             if(null != collider2D)
             {
                 collider2D.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
@@ -363,6 +373,11 @@ export namespace Maze_EnemyBase
 
             this._FSM.init();
             this._FSM.applyTransition(EnemyFSMTransitions.To_BypassObstacle);
+
+            this.schedule(()=>
+            {
+                this.determineStateRayCast();
+            },0.1);
         }
 
         updatePathToPlayer()
@@ -448,61 +463,24 @@ export namespace Maze_EnemyBase
             return movementVec;
         }
 
-        drawChasingPath()
-        {
-            if(true == this.debug)
-            {
-                var graphics = this._graphicsNode.getComponent(Graphics);
-
-                if(null != graphics)
-                {
-                    var uiTransform = graphics.getComponent(UITransform);
-
-                    if(null != uiTransform)
-                    {
-                        var localStartPosition = uiTransform.convertToNodeSpaceAR(this.node.worldPosition);
-                        var localEndPosition = uiTransform.convertToNodeSpaceAR(this.playerInFocus.node.worldPosition);
-                        graphics.clear();
-                        graphics.moveTo(localStartPosition.x,localStartPosition.y);
-                        graphics.lineTo(localEndPosition.x,localEndPosition.y);
-                        graphics.close();
-                        graphics.stroke();
-                    }
-                }
-            }
-        }
-
         drawBypassObstaclePath()
         {
-            if(true == this.debug)
+            if(null != this._debugGraphics)
             {
-                var graphics = this._graphicsNode.getComponent(Graphics);
-
-                if(null != graphics)
+                this._debugGraphics.clear();
+                this._debugGraphics.moveTo(this.node.worldPosition.x, this.node.worldPosition.y);
+                this._debugGraphics.strokeColor = new math.Color(255,0,0);
+                this._debugGraphics.lineWidth = 20;
+                
+                if(0 != this._pathToPlayer.length)
                 {
-                    graphics.clear();
-
-                    var uiTransform = graphics.getComponent(UITransform);
-
-                    if(null != uiTransform)
+                    for(var pathElement of this._pathToPlayer)
                     {
-                        var localStartPosition = uiTransform.convertToNodeSpaceAR(this.node.worldPosition);
-                        graphics.moveTo(localStartPosition.x, localStartPosition.y);
-                        graphics.strokeColor = new math.Color(255,0,0);
-                        graphics.lineWidth = 20;
-                        
-                        if(0 != this._pathToPlayer.length)
-                        {
-                            for(var pathElement of this._pathToPlayer)
-                            {
-                                var localVertexPosition = uiTransform.convertToNodeSpaceAR(Maze_Common.toVec3(pathElement));
-                                graphics.lineTo(localVertexPosition.x, localVertexPosition.y);
-                            }
-                        }
-
-                        graphics.stroke();
+                        this._debugGraphics.lineTo(pathElement.x, pathElement.y);
                     }
                 }
+
+                this._debugGraphics.stroke();
             }
         }
 
@@ -512,22 +490,89 @@ export namespace Maze_EnemyBase
             {
                 if(this._rigidBody != null)
                 {
-                    if(null != this.playerInFocus)
+                    if(null != this.playerInFocus && null != this._uiTransform)
                     {
-                        var raycastResult = PhysicsSystem2D.instance.raycast(this.node.worldPosition, this.playerInFocus.node.worldPosition, ERaycast2DType.All);
-
-                        var collideWithWall:boolean = false;
-
-                        for(var raycastElement of raycastResult)
+                        class Vec2Pair 
                         {
-                            if(raycastElement.collider.group == 1 << this.wallCollisionGroup)
+                            enemyCoord: Vec2 = new Vec2();
+                            playerCoord: Vec2 = new Vec2();
+                        } 
+
+                        var checkCoordinates:Vec2Pair[] = [];
+
+                        var firstCoordPair:Vec2Pair = new Vec2Pair();
+                        var secondCoordPair:Vec2Pair = new Vec2Pair();
+
+                        var playerWorldPos = this.playerInFocus.node.worldPosition;
+                        var enemyWorldPos = this.node.worldPosition;
+
+                        {
+                            var enemyToPlayerVector = Maze_Common.toVec2(playerWorldPos.clone().subtract(this.node.worldPosition));
+                            var perpendicularClockwise = Maze_Common.perpendicularClockwise(enemyToPlayerVector).normalize();
+                            var perpendicularCounterClockwise = Maze_Common.perpendicularCounterClockwise(enemyToPlayerVector).normalize();
+                            firstCoordPair.enemyCoord = Maze_Common.toVec2(enemyWorldPos).add(perpendicularClockwise.multiplyScalar(this._uiTransform.contentSize.x / 2 * this.node.scale.x * 1.2) );
+                            secondCoordPair.enemyCoord = Maze_Common.toVec2(enemyWorldPos).add(perpendicularCounterClockwise.multiplyScalar(this._uiTransform.contentSize.x / 2 * this.node.scale.x * 1.2) );
+                        }
+
+                        {
+                            var playerUITransform = this.playerInFocus.getComponent(UITransform);
+
+                            if(null != playerUITransform)
                             {
-                                collideWithWall = true;
+                                var playerToEnemyVector = Maze_Common.toVec2(this.node.worldPosition.clone().subtract(playerWorldPos));
+                                var perpendicularClockwise = Maze_Common.perpendicularClockwise(playerToEnemyVector).normalize();
+                                var perpendicularCounterClockwise = Maze_Common.perpendicularCounterClockwise(playerToEnemyVector).normalize();
+                                firstCoordPair.playerCoord = Maze_Common.toVec2(playerWorldPos).add(perpendicularCounterClockwise.multiplyScalar(playerUITransform.contentSize.x / 2 * this.playerInFocus.node.scale.x * 0.7) );
+                                secondCoordPair.playerCoord = Maze_Common.toVec2(playerWorldPos).add(perpendicularClockwise.multiplyScalar(playerUITransform.contentSize.x / 2 * this.playerInFocus.node.scale.x * 0.7) );
+                            }
+                        }
+
+                        checkCoordinates.push( firstCoordPair );
+                        checkCoordinates.push( secondCoordPair );
+
+                        var visibleLines:number = 0;
+
+                        if(null != this._debugGraphics)
+                        {
+                            this._debugGraphics.clear();
+                        }
+
+                        for(var coordinatePair of checkCoordinates)
+                        {
+                            if(null != this._debugGraphics)
+                            {
+                                this._debugGraphics.strokeColor = new math.Color(255,0,0);
+                                this._debugGraphics.lineWidth = 20;
+                                this._debugGraphics.moveTo(coordinatePair.enemyCoord.x,coordinatePair.enemyCoord.y);
+                                this._debugGraphics.lineTo(coordinatePair.playerCoord.x,coordinatePair.playerCoord.y);
+                                this._debugGraphics.close();
+                                this._debugGraphics.stroke();
+                            }
+
+                            var raycastResult = PhysicsSystem2D.instance.raycast(coordinatePair.enemyCoord, coordinatePair.playerCoord, ERaycast2DType.All);
+
+                            var playerVisible:boolean = true;
+
+                            for(var raycastElement of raycastResult)
+                            {
+                                if(raycastElement.collider.group == 1 << this.wallCollisionGroup)
+                                {
+                                    playerVisible = false;
+                                    break;
+                                }
+                            }
+
+                            if(true == playerVisible)
+                            {
+                                visibleLines = visibleLines + 1;
+                            }
+                            else
+                            {
                                 break;
                             }
                         }
 
-                        if(false == collideWithWall)
+                        if(visibleLines >= 2)
                         {
                             this._FSM.applyTransition(EnemyFSMTransitions.To_ChasingPlayer);
                         }
@@ -536,11 +581,6 @@ export namespace Maze_EnemyBase
                             this._FSM.applyTransition(EnemyFSMTransitions.To_BypassObstacle);
                             this.drawBypassObstaclePath();
                         }
-
-                        if(this._FSM.currentState == EnemyFSMStateId.ChasingPlayer)
-                        {
-                            this.drawChasingPath();
-                        }
                     }
                 }
             }
@@ -548,8 +588,6 @@ export namespace Maze_EnemyBase
 
         update_logic(deltaTime:number)
         {
-            this.determineStateRayCast();
-
             if(this._rigidBody != null)
             {
                 var movementVec = this.getMovementVec();
@@ -577,39 +615,44 @@ export namespace Maze_EnemyBase
                 this._rigidBody.applyForceToCenter( Maze_Common.toVec2(movementVec), true );
             }
 
-            var targetWorldCoord = new Vec3();
-
-            if(EnemyFSMStateId.ChasingPlayer == this._FSM.currentState)
+            if(EnemyFSMStateId.Death != this._FSM.currentState &&
+               EnemyFSMStateId.Destroy != this._FSM.currentState &&
+               EnemyFSMStateId.Final != this._FSM.currentState)
             {
-                if(null != this.playerInFocus)
+                var targetWorldCoord = new Vec3();
+
+                if(EnemyFSMStateId.ChasingPlayer == this._FSM.currentState)
                 {
-                    targetWorldCoord = this.playerInFocus.node.worldPosition;
+                    if(null != this.playerInFocus)
+                    {
+                        targetWorldCoord = this.playerInFocus.node.worldPosition;
+                    }
                 }
-            }
-            else if(EnemyFSMStateId.BypassObstacle == this._FSM.currentState ||
-                    EnemyFSMStateId.BypassObstacleCorner == this._FSM.currentState)
-            {
-                if(0 != this._pathToPlayer.length)
+                if(EnemyFSMStateId.BypassObstacle == this._FSM.currentState ||
+                        EnemyFSMStateId.BypassObstacleCorner == this._FSM.currentState)
                 {
-                    targetWorldCoord = Maze_Common.toVec3( this._pathToPlayer[0] );
+                    if(0 != this._pathToPlayer.length)
+                    {
+                        targetWorldCoord = Maze_Common.toVec3( this._pathToPlayer[0] );
+                    }
                 }
-            }
 
-            var nodeWorldCoord = this.node.worldPosition;
+                var nodeWorldCoord = this.node.worldPosition;
 
-            var lookAtVec:Vec2 = new Vec2();
+                var lookAtVec:Vec2 = new Vec2();
 
-            lookAtVec.x = targetWorldCoord.x - nodeWorldCoord.x;
-            lookAtVec.y = targetWorldCoord.y - nodeWorldCoord.y;
+                lookAtVec.x = targetWorldCoord.x - nodeWorldCoord.x;
+                lookAtVec.y = targetWorldCoord.y - nodeWorldCoord.y;
 
-            var eyeDirection2D = new Vec2(this.eyesDirection.x, this.eyesDirection.y);
-            var andgleRad:number = eyeDirection2D.signAngle( lookAtVec );
-            var angleDeg:number = Math.floor( misc.radiansToDegrees(andgleRad) );
+                var eyeDirection2D = new Vec2(this.eyesDirection.x, this.eyesDirection.y);
+                var andgleRad:number = eyeDirection2D.signAngle( lookAtVec );
+                var angleDeg:number = Math.floor( misc.radiansToDegrees(andgleRad) );
 
-            if(Math.abs(angleDeg - this._currentAngle) > 10)
-            {
-                this.node.setRotationFromEuler( 0, 0, angleDeg );
-                this._currentAngle = angleDeg;
+                if(Math.abs(angleDeg - this._currentAngle) > 10)
+                {
+                    this.node.setRotationFromEuler( 0, 0, angleDeg );
+                    this._currentAngle = angleDeg;
+                }
             }
         }
 
@@ -646,16 +689,6 @@ export namespace Maze_EnemyBase
             if(EnemyFSMStateId.Destroy == this._FSM.currentState)
             {
                 this._FSM.applyTransition(EnemyFSMTransitions.To_Final);
-
-                if(null != this._graphicsNode)
-                {
-                    if(null != this.node.parent)
-                    {
-                        this.node.parent.removeChild(this._graphicsNode);
-                        this.node.addChild(this._graphicsNode);
-                        this._graphicsNode.parent = this.node;
-                    }
-                }
 
                 if(null != this.playerInFocus)
                 {
