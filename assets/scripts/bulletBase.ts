@@ -1,12 +1,25 @@
 import { _decorator, Component, Node, Vec2, Vec3, RigidBody2D, UITransform, PolygonCollider2D, Contact2DType, Collider2D, IPhysics2DContact } from 'cc';
 import { Maze_Common } from './common'
+import { Maze_Observer } from './observer/observer';
 const { ccclass, property } = _decorator;
 
 export namespace Maze_BulletBase
 { 
+    export class DestroyBulletContext 
+    {
+        constructor(bullet:Node)
+        {
+            this.bullet = bullet;
+        }
+        bullet:Node; 
+    }
+
     @ccclass('BulletBase')
     export class BulletBase extends Component 
     {
+        public destroyBulletSubject:Maze_Observer.Subject<DestroyBulletContext> = 
+        new Maze_Observer.Subject<DestroyBulletContext>();
+
         private _direction:Vec2 = new Vec2();
         private _shouldDestroy:boolean = false;
         
@@ -20,22 +33,23 @@ export namespace Maze_BulletBase
             this._isDamageActive = false;
         }
 
+        private _collisionGroup:number = 0;
         public set collisionGroup(val:number)
         {
-            var collisionGroup = 1 << val;
+            this._collisionGroup = 1 << val;
 
             var rigidBody = this.node.getComponent(RigidBody2D);
 
             if(null != rigidBody)
             {
-                rigidBody.group = collisionGroup;
+                rigidBody.group = this._collisionGroup;
             }
 
             var collider = this.node.getComponent(Collider2D);
 
             if(null != collider)
             {
-                collider.group = collisionGroup;
+                collider.group = this._collisionGroup;
                 collider.apply();
             }
         }
@@ -64,6 +78,14 @@ export namespace Maze_BulletBase
         public get damage() : number
         {
             return this._damage;
+        }
+
+        reuse()
+        {
+            this._isDamageActive = true;
+            this._shouldDestroy = false;
+
+            this.unscheduleAllCallbacks();
         }
 
         onBeginContact (selfCollider:Collider2D, otherCollider:Collider2D, contact:IPhysics2DContact) 
@@ -110,10 +132,10 @@ export namespace Maze_BulletBase
 
             this._direction = direction;
 
-            this.schedule(()=> 
+            this.scheduleOnce(()=> 
             {
-                this.node.destroy();
-            }, 2);
+                this._shouldDestroy = true;
+            }, this.bulletTimeAlive);
 
             var rigidBody = this.getComponent(RigidBody2D);
 
@@ -143,7 +165,8 @@ export namespace Maze_BulletBase
             {
                 if(true == this._shouldDestroy)
                 {
-                    this.node.destroy();
+                    this.destroyBulletSubject.notify( new DestroyBulletContext(this.node) );
+                    this._shouldDestroy = false;
                 }
             }
         }

@@ -1,5 +1,7 @@
 
-import { _decorator, Component, Node, sp, PolygonCollider2D, Contact2DType, Collider2D, IPhysics2DContact, RigidBody2D, Vec3, Vec2, misc, Graphics, math, UITransform, game, PhysicsSystem2D, ERaycast2DType} from 'cc';
+import { _decorator, Component, Node, sp, PolygonCollider2D, Contact2DType, Collider2D, 
+    IPhysics2DContact, RigidBody2D, Vec3, Vec2, misc, Graphics, math, UITransform, game, 
+    PhysicsSystem2D, ERaycast2DType, Color, tween, Tween} from 'cc';
 import { Maze_BulletBase } from './bulletBase';
 import { Maze_PlayerCursor } from './playerCursor';
 import { Maze_Common } from './common'
@@ -13,6 +15,24 @@ const { ccclass, property } = _decorator;
 
 export namespace Maze_EnemyBase
 {
+    export class DestroyEnemyContext 
+    {
+        constructor(enemy:Node)
+        {
+            this.enemy = enemy;
+        }
+        enemy:Node; 
+    }
+
+    export class DeathEnemyContext 
+    {
+        constructor(enemy:Node)
+        {
+            this.enemy = enemy;
+        }
+        enemy:Node; 
+    }
+
     enum EnemyFSMStateId
     {
         Idle = 0,
@@ -47,8 +67,19 @@ export namespace Maze_EnemyBase
     @ccclass('EnemyBase')
     export class EnemyBase extends Component
     {
+        public destroyEnemySubject:Maze_Observer.Subject<DestroyEnemyContext> = 
+        new Maze_Observer.Subject<DestroyEnemyContext>();
+
+        public deathEnemySubject:Maze_Observer.Subject<DeathEnemyContext> = 
+        new Maze_Observer.Subject<DeathEnemyContext>();
+
         @property
         health:number = 100;
+
+        private _initalHealth:number = 0;
+        private _shouldNotifyDeath:boolean = false;
+        private _shouldNotifyDestroy:boolean = false;
+        private _fadeInTween:Tween<Color>|null = null;
 
         @property ( Maze_PlayerCursor.PlayerCursor )
         playerInFocus:Maze_PlayerCursor.PlayerCursor = new Maze_PlayerCursor.PlayerCursor();
@@ -90,27 +121,6 @@ export namespace Maze_EnemyBase
         private _movementDirection:number = 0;
         private _rigidBody:RigidBody2D|null = null;
         private _isTurnOffCollision:boolean = false;
-        private _needToSendDeathNotificationCallbacks:boolean = false;
-
-        private _deathNotificationCallbacks : (((node:Node) => void) | null)[] = [];
-        public addDeathNotificationCallback(val:((node:Node) => void) | null)
-        {
-            if(null != val)
-            {
-                this._deathNotificationCallbacks.push(val);
-            }
-        }
-        public removeDeathNotificationCallback(val:((node:Node) => void) | null)
-        {
-            if(null != val)
-            {
-                const index = this._deathNotificationCallbacks.indexOf(val, 0);
-                if (index > -1) 
-                {
-                    this._deathNotificationCallbacks.splice(index, 1);
-                }
-            }
-        }
 
         private _walkForce:number = 200000;
         public get walkForce() : number
@@ -123,14 +133,27 @@ export namespace Maze_EnemyBase
 
         private _uiTransform:UITransform|null = null;
 
-        constructor()
+        createFSM() : EnemyFSM
         {
-            super();
-
             // Declaration of FSM states
             var idleState = new EnemyFSMState( EnemyFSMStateId.Idle, (context:EnemyFSMContext)=>
             {
                 // enter
+                if(null != this.playerInFocus)
+                {
+    
+                    this._cursorPlayerGridPositionObserver.setObserverCallback((data:Maze_PlayerCursor.CursorPlayerGridPositionContext) => 
+                    {
+                        if(EnemyFSMStateId.BypassObstacle == this._FSM.currentState || 
+                           EnemyFSMStateId.BypassObstacleCorner == this._FSM.currentState)
+                        {
+                            this.updatePathToPlayer();
+                        }
+                    });
+    
+                    this.playerInFocus.cursorPlayerGridPositionSubject.attach(this._cursorPlayerGridPositionObserver);
+                }
+
                 var spineComp = this.getComponent(sp.Skeleton);
 
                 if(spineComp != null)
@@ -218,13 +241,13 @@ export namespace Maze_EnemyBase
 
             var deathState = new EnemyFSMState( EnemyFSMStateId.Death, (context:EnemyFSMContext)=>
             {
+                this._shouldNotifyDeath = true;
+
                 // enter
                 var spineComp = this.getComponent(sp.Skeleton);
                                         
                 if(spineComp != null)
                 {
-                    this._needToSendDeathNotificationCallbacks = true;
-
                     spineComp.setAnimation(0, "death", false);
 
                     this._isTurnOffCollision = true;
@@ -262,7 +285,8 @@ export namespace Maze_EnemyBase
 
             var destroyState = new EnemyFSMState( EnemyFSMStateId.Destroy, (context:EnemyFSMContext)=>
             {
-                // enter
+                this.stopFadeIn();
+                this._shouldNotifyDestroy = true;
             }, 
             (context:EnemyFSMContext)=>
             {
@@ -303,6 +327,8 @@ export namespace Maze_EnemyBase
             var From_Death_To_DestroyTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Destroy, deathState, destroyState);
             var From_Destroy_To_FinalTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Final, destroyState, finalState);
 
+            var From_Final_To_IdleTransition = new EnemyFSMTransition(EnemyFSMTransitions.To_Idle, finalState, idleState);
+
             // Assignment of transitions to states
             
             idleState.addTransition( From_Idle_To_ChasingPlayerTransition );
@@ -329,9 +355,17 @@ export namespace Maze_EnemyBase
 
             destroyState.addTransition( From_Destroy_To_FinalTransition );
 
+            finalState.addTransition( From_Final_To_IdleTransition );
+
             // Creation of FSM
             var context:EnemyFSMContext = new EnemyFSMContext();
-            this._FSM = new EnemyFSM(idleState, context);
+            return new EnemyFSM(idleState, context);
+        }
+
+        constructor()
+        {
+            super();
+            this._FSM = this.createFSM();
         }
 
         onLoad()
@@ -341,6 +375,7 @@ export namespace Maze_EnemyBase
 
         start()
         {
+            this._initalHealth = this.health;
             this._uiTransform = this.node.getComponent(UITransform);
 
             if(true == this.debug)
@@ -349,21 +384,6 @@ export namespace Maze_EnemyBase
             }
 
             this._rigidBody = this.node.getComponent(RigidBody2D);
-
-            if(null != this.playerInFocus)
-            {
-
-                this._cursorPlayerGridPositionObserver.setObserverCallback((data:Maze_PlayerCursor.CursorPlayerGridPositionContext) => 
-                {
-                    if(EnemyFSMStateId.BypassObstacle == this._FSM.currentState || 
-                       EnemyFSMStateId.BypassObstacleCorner == this._FSM.currentState)
-                    {
-                        this.updatePathToPlayer();
-                    }
-                });
-
-                this.playerInFocus.cursorPlayerGridPositionSubject.attach(this._cursorPlayerGridPositionObserver);
-            }
 
             var collider2D = this.node.getComponent(Collider2D);
             if(null != collider2D)
@@ -378,6 +398,21 @@ export namespace Maze_EnemyBase
             {
                 this.determineStateRayCast();
             },0.1);
+        }
+
+        reuse()
+        {
+            this.health = this._initalHealth;
+            this._FSM.applyTransition(EnemyFSMTransitions.To_Idle);
+            this._FSM.applyTransition(EnemyFSMTransitions.To_BypassObstacle);
+
+            if(this._rigidBody != null)
+            {
+                if(null != this._rigidBody)
+                {
+                    this._rigidBody.enabled = true;
+                }
+            }
         }
 
         updatePathToPlayer()
@@ -549,20 +584,9 @@ export namespace Maze_EnemyBase
                                 this._debugGraphics.stroke();
                             }
 
-                            var raycastResult = PhysicsSystem2D.instance.raycast(coordinatePair.enemyCoord, coordinatePair.playerCoord, ERaycast2DType.All);
+                            var raycastResult = this.map?.raycast(coordinatePair.enemyCoord, coordinatePair.playerCoord);
 
-                            var playerVisible:boolean = true;
-
-                            for(var raycastElement of raycastResult)
-                            {
-                                if(raycastElement.collider.group == 1 << this.wallCollisionGroup)
-                                {
-                                    playerVisible = false;
-                                    break;
-                                }
-                            }
-
-                            if(true == playerVisible)
+                            if(null == raycastResult)
                             {
                                 visibleLines = visibleLines + 1;
                             }
@@ -656,6 +680,33 @@ export namespace Maze_EnemyBase
             }
         }
 
+        fadeIn()
+        {
+            var spineComp = this.node.getComponent( sp.Skeleton );
+
+            if(null != spineComp)
+            {
+                spineComp.color.set(new Color(spineComp.color.r, spineComp.color.g, spineComp.color.b, 0));
+                this._fadeInTween = tween(spineComp.color).to(2, new Color(spineComp.color.r, spineComp.color.g, spineComp.color.b, 255)).start();
+            }
+        }
+
+        stopFadeIn()
+        {
+            if(null != this._fadeInTween)
+            {
+                this._fadeInTween.stop();
+                this._fadeInTween = null;
+            }
+
+            var spineComp = this.node.getComponent( sp.Skeleton );
+
+            if(null != spineComp)
+            {
+                spineComp.color.set(new Color(255, 255, 255, 255));
+            }
+        }
+
         update_HandlingDelayedActions()
         {
             // handling delayed actions
@@ -673,29 +724,29 @@ export namespace Maze_EnemyBase
                 }
             }
 
-            if(true == this._needToSendDeathNotificationCallbacks)
+            if(EnemyFSMStateId.Death == this._FSM.currentState)
             {
-                this._deathNotificationCallbacks.forEach(element => 
+                if(true == this._shouldNotifyDeath)
                 {
-                    if(null != element)
-                    {
-                        element(this.node);
-                    }
-                });
-
-                this._needToSendDeathNotificationCallbacks = false;
+                    this.deathEnemySubject.notify( new DestroyEnemyContext( this.node ) );
+                    this._shouldNotifyDeath = false;
+                }
             }
 
             if(EnemyFSMStateId.Destroy == this._FSM.currentState)
             {
-                this._FSM.applyTransition(EnemyFSMTransitions.To_Final);
-
-                if(null != this.playerInFocus)
+                if(true == this._shouldNotifyDestroy)
                 {
-                    this.playerInFocus.cursorPlayerGridPositionSubject.detach(this._cursorPlayerGridPositionObserver); 
-                }
+                    this._FSM.applyTransition(EnemyFSMTransitions.To_Final);
 
-                this.node.destroy();
+                    if(null != this.playerInFocus)
+                    {
+                        this.playerInFocus.cursorPlayerGridPositionSubject.detach(this._cursorPlayerGridPositionObserver); 
+                    }
+
+                    this.destroyEnemySubject.notify( new DestroyEnemyContext( this.node ) );
+                    this._shouldNotifyDestroy = false;
+                }
             }
         }
 

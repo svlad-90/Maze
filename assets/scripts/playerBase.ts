@@ -65,7 +65,7 @@ export namespace Maze_PlayerBase
         {
             if(null != this.map)
             {
-                var walkableTiles = this.map.filterWalkableTiles2( new Rect( 0, 0, this.map.Width, this.map.Height ) );
+                var walkableTiles = this.map.filterTiles2( new Rect( 0, 0, this.map.Width, this.map.Height ) );
 
                 var creationTileIndex = randomRangeInt(0, walkableTiles.length);
                 var creationTile = walkableTiles[creationTileIndex];

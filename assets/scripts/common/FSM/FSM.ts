@@ -89,6 +89,11 @@ export namespace Maze_FSM
     export class FSM<StateIdsEnum, TransitionIdsEnum, Context>
     {
         private _initialized = false;
+        public get initialized()
+        {
+            return this._initialized;
+        }
+
         private _initialState:State<StateIdsEnum, TransitionIdsEnum, Context>;
 
         private _currentState:State<StateIdsEnum, TransitionIdsEnum, Context>;

@@ -45,10 +45,10 @@
         "__id__": 23
       },
       {
-        "__id__": 14
+        "__id__": 7
       },
       {
-        "__id__": 7
+        "__id__": 14
       }
     ],
     "_active": true,
@@ -183,8 +183,8 @@
     "_sharedGraphics": {
       "__id__": 6
     },
-    "_width": 16,
-    "_height": 16,
+    "_width": 20,
+    "_height": 20,
     "_mapNodeSize": 300,
     "_floorPrefab": {
       "__uuid__": "de779049-9428-45bf-86c9-01b80763f63a",
@@ -870,7 +870,7 @@
     "_id": "d2Nm0s5mRJxJeJl4hUxD+w"
   },
   {
-    "__type__": "f6b17X572dHVr8zeZTMZfNk",
+    "__type__": "49c5cGjZ7NIr57wfMLEjBTY",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -878,14 +878,9 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "targetBone": "root/main/shoulder_left",
-    "luminousPower": 1,
-    "luminance": 1,
-    "term": 1,
-    "size": 100,
-    "range": 100,
-    "spotAngle": 100,
-    "_id": "1dH+qm6ulHLJb+6jREu8u7"
+    "radius": 1000,
+    "updateFrequencyPerSecond": 120,
+    "_id": "caW0DNgyZKzpb0UYQKe3Zj"
   },
   {
     "__type__": "cc.Node",
