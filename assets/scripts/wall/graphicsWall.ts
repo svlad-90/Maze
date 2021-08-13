@@ -68,6 +68,11 @@ export namespace Maze_GraphicsWall
         }
 
         private _vertices:Vec2[] = [];
+        get vertices():Vec2[]
+        {
+            return this._vertices;
+        }
+
         private _numberOfShownVertices:number = 0;
         private _polygonCollider2DComp:PolygonCollider2D|null = null;
         private _UITransform:UITransform|null = null;

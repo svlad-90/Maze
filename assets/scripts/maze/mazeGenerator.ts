@@ -299,7 +299,7 @@ export namespace Maze_MazeGenerator
                     i += 1;
                 }
 
-                // select "break the wall visited neighbour
+                // select "break the wall" visited neighbour
                 var randomVisitedNeighbourInfo = randomFrontier.getRandomVisitedNeighbour();
 
                 if(null != randomVisitedNeighbourInfo)

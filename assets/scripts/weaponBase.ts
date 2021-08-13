@@ -1,14 +1,18 @@
 
-import { _decorator, Component, Vec3, Prefab, instantiate, Node } from 'cc';
+import { _decorator, Component, Vec3, Prefab, instantiate, Node, NodePool } from 'cc';
 import { Maze_GlobalMouseListener } from './globalMouseListener';
 import { Maze_EasyReference } from './easyReference';
 import { Maze_BulletBase } from './bulletBase';
+import { Maze_Observer } from './observer/observer';
+import std from './thirdparty/tstl/src';
 const { property } = _decorator;
 
 export namespace Maze_WeaponBase
 { 
     export abstract class WeaponBase extends Component 
     {
+        private static _bulletPoolMap:std.TreeMap<String, NodePool> = new std.TreeMap<String, NodePool>();
+
         @property (Prefab)
         bulletPrefab:Prefab|null = null;
 
@@ -47,26 +51,94 @@ export namespace Maze_WeaponBase
             return this._direction;
         }
 
-        createBullet() : Node|null
+        private _destroyBulletObserver:Maze_Observer.Observer<Maze_BulletBase.DestroyBulletContext> 
+        = new Maze_Observer.Observer<Maze_BulletBase.DestroyBulletContext>();
+
+        protected createBullet() : Node|null
         {
-            var bulletPrefab = null;
+            var bulletInstance:Node|null = null;
 
             if(null != this.bulletPrefab)
             {
-                bulletPrefab = instantiate(this.bulletPrefab);
-            
-                if(null != bulletPrefab)
-                {
-                    var bulletComponent = bulletPrefab.getComponent( Maze_BulletBase.BulletBase );
+                var nodePool:NodePool|null = null;
 
-                    if(null != bulletComponent)
+                if(WeaponBase._bulletPoolMap.has(this.bulletPrefab.name))
+                {
+                    nodePool = WeaponBase._bulletPoolMap.get(this.bulletPrefab.name);
+                }
+                else
+                {
+                    nodePool = new NodePool();
+                    WeaponBase._bulletPoolMap.set(this.bulletPrefab.name,nodePool);
+                }
+
+                if(0 != nodePool.size())
+                {
+                    bulletInstance = nodePool.get();
+
+                    if(null != bulletInstance)
                     {
-                        bulletComponent.collisionGroup = this.bulletCollisionGroup;
+                        var bulletComponent = bulletInstance.getComponent( Maze_BulletBase.BulletBase );
+        
+                        if(null != bulletComponent)
+                        {
+                            bulletComponent.reuse();
+                        }
+                    }
+                    else
+                    {
+                        throw("Error! bulletInstance == null!");
                     }
                 }
+                else
+                {
+                    bulletInstance = instantiate(this.bulletPrefab);
+                }                
             }
             
-            return bulletPrefab;
+            if(null != bulletInstance)
+            {
+                var bulletComponent = bulletInstance.getComponent( Maze_BulletBase.BulletBase );
+
+                if(null != bulletComponent)
+                {
+                    bulletComponent.collisionGroup = this.bulletCollisionGroup;
+                    bulletComponent.destroyBulletSubject.attach(this._destroyBulletObserver);
+                }
+            }
+            else
+            {
+                throw("Error! bulletInstance == null!");
+            }
+
+            return bulletInstance;
+        }
+
+        protected destroyBullet(bullet:Node)
+        {
+            if(null != this.bulletPrefab)
+            {
+                var nodePool:NodePool|null = null;
+
+                if(WeaponBase._bulletPoolMap.has(this.bulletPrefab.name))
+                {
+                    nodePool = WeaponBase._bulletPoolMap.get(this.bulletPrefab.name);
+                }
+                else
+                {
+                    nodePool = new NodePool();
+                    WeaponBase._bulletPoolMap.set(this.bulletPrefab.name,nodePool);
+                }
+
+                var bulletComponent = bullet.getComponent( Maze_BulletBase.BulletBase );
+
+                if(null != bulletComponent)
+                {
+                    bulletComponent.destroyBulletSubject.detach(this._destroyBulletObserver);
+                }
+
+                nodePool.put(bullet);               
+            }   
         }
 
         // should be implemented by inhetired classes
@@ -113,16 +185,17 @@ export namespace Maze_WeaponBase
             }
         }
 
-        public onLoad ()
+        public start() 
         {
             this.node.addComponent(Maze_GlobalMouseListener.GlobalMouseListener);
             this.node.addComponent(Maze_EasyReference.EasyReference);
 
             this.easyReference = this.node.getComponent(Maze_EasyReference.EasyReference);
-        }
 
-        public start() 
-        {
+            this._destroyBulletObserver.setObserverCallback((data:Maze_BulletBase.DestroyBulletContext) => 
+            {                
+                this.destroyBullet(data.bullet);
+            });
         }
     }
 }

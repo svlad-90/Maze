@@ -1,5 +1,5 @@
 
-import { Vec2, Vec3, math, ResolutionPolicy, randomRange, Line } from 'cc';
+import { Vec2, Vec3, math, ResolutionPolicy, randomRange, Line, Rect } from 'cc';
 import { Maze_DoubleLinkedList } from './common/doubleLinkedList';
 
 export namespace Maze_Common
@@ -78,11 +78,17 @@ export namespace Maze_Common
      */
     export function linesCross(line1:Line, line2:Line) : Vec2|null
     {
+        return linesCrossOptimized(line1.startPoint.x, line1.startPoint.y, line1.endPoint.x, line1.endPoint.y, 
+                            line2.startPoint.x, line2.startPoint.y, line2.endPoint.x, line2.endPoint.y);
+    }
+
+    export function linesCrossOptimized(x1:number, y1:number, x2:number, y2:number, x3:number, y3:number, x4:number, y4:number) : Vec2|null
+    {
         // calculate the differences between the start and end X/Y positions for each of our points
-        var delta1x:number = line1.endPoint.x - line1.startPoint.x;
-        var delta1y:number = line1.endPoint.y - line1.startPoint.y;
-        var delta2x:number = line2.endPoint.x - line2.startPoint.x;
-        var delta2y:number = line2.endPoint.y - line2.startPoint.y;
+        var delta1x:number = x2 - x1;
+        var delta1y:number = y2 - y1;
+        var delta2x:number = x4 - x3;
+        var delta2y:number = y4 - y3;
     
         // create a 2D matrix from our vectors and calculate the determinant
         var determinant = delta1x * delta2y - delta2x * delta1y;
@@ -94,17 +100,17 @@ export namespace Maze_Common
         }
     
         // if the coefficients both lie between 0 and 1 then we have an intersection
-        var ab = ((line1.startPoint.y - line2.startPoint.y) * delta2x - (line1.startPoint.x - line2.startPoint.x) * delta2y) / determinant;
+        var ab = ((y1 - y3) * delta2x - (x1 - x3) * delta2y) / determinant;
     
-        if(ab > 0 && ab < 1)
+        if(ab >= 0 && ab <= 1)
         {
-            var cd = ((line1.startPoint.y - line2.startPoint.y) * delta1x - (line1.startPoint.x - line2.startPoint.x) * delta1y) / determinant;
+            var cd = ((y1 - y3) * delta1x - (x1 - x3) * delta1y) / determinant;
     
-            if(cd > 0 && cd < 1)
+            if(cd >= 0 && cd <= 1)
             {
                 // lines cross – figure out exactly where and return it
-                let intersectX = line1.startPoint.x + ab * delta1x;
-                let intersectY = line1.startPoint.y + ab * delta1y;
+                let intersectX = x1 + ab * delta1x;
+                let intersectY = y1 + ab * delta1y;
                 return new Vec2(intersectX, intersectY);
             }
         }
@@ -194,10 +200,19 @@ export namespace Maze_Common
         var result:Array<Vec2> = [];
 
         var maxAngle:number = 360;
+
         var minJumpAngle = maxAngle / numberOfVertices * 0.7;
         var maxJumpAngle = maxAngle / numberOfVertices * 1.3;
 
         var angle:number = 0;
+
+        if(numberOfVertices == 4)
+        {
+            var minJumpAngle = 90;
+            var maxJumpAngle = 90;
+            var angle:number = -45;
+        }
+        
         var upVec:Vec2 = new Vec2(0,1);
         var dimensionDiagonalLength:number = rectDiagonal(dimensions);
 
@@ -262,6 +277,30 @@ export namespace Maze_Common
     export function perpendicularCounterClockwise(vec:Vec2):Vec2
     {
         return new Vec2(-vec.y, vec.x);
+    }
+
+    export function isPointInsideRectangle(point:Vec2, rect:Rect) : boolean
+    {
+        var A:Vec2 = new Vec2(rect.xMin, rect.yMin);
+        var B:Vec2 = new Vec2(rect.xMin, rect.yMax);
+        var C:Vec2 = new Vec2(rect.xMax, rect.yMax);
+        var D:Vec2 = new Vec2(rect.xMax, rect.yMin);
+
+        var AB:Vec2 = B.clone().subtract(A);
+        var AP = point.clone().subtract(A);
+        var BC = C.clone().subtract(B);
+        var BP = point.clone().subtract(B);
+        
+        var dotABAP = AB.dot(AP);
+        var dotABAB = AB.dot(AB);
+        var dotBCBP = BC.dot(BP);
+        var dotBCBC = BC.dot(BC);
+        return 0 <= dotABAP && dotABAP <= dotABAB && 0 <= dotBCBP && dotBCBP <= dotBCBC;
+    }
+
+    export function isPointInsideCircle(point:Vec2, circleCenter:Vec2, circleRadius:number) : boolean
+    {
+        return Math.pow(point.x - circleCenter.x, 2) + Math.pow(point.y - circleCenter.y,2) <= Math.pow(circleRadius, 2);
     }
 
     /////////////////////// Polygon generation algorithm END ///////////////////////

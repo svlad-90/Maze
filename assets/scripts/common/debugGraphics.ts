@@ -194,7 +194,7 @@ export namespace Maze_DebugGraphics
         circle(cx: number, cy: number, r: number): void
         {
             var localPosition = this._uiTransform.convertToNodeSpaceAR(new Vec3(cx,cy,0));
-            this._graphics.circle(localPosition.x, localPosition.y, r);
+            this._graphics.circle(localPosition.x, localPosition.y, r * this._graphicsNode.scale.x);
         }
 
         rect(x: number, y: number, w: number, h: number): void
