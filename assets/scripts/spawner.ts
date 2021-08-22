@@ -25,10 +25,10 @@ export class Spawner extends Component
     player:Maze_PlayerCursor.PlayerCursor|null = null;
 
     @property
-    innerBB:math.Rect = new Rect(-10, -10, 20, 20);
+    minCellDistance:number = 5;
 
     @property
-    outerBB:math.Rect = new Rect(-15, -15, 30, 30);
+    maxCellDistance:number = 10;
 
     @property (Maze_MapBuilder.MapBuilder)
     map:Maze_MapBuilder.MapBuilder|null = null;
@@ -70,6 +70,55 @@ export class Spawner extends Component
     {
         var enemyInstance:Node|null = null;
 
+        var prepareEnemy = () =>
+        {
+            if(null != enemyInstance)
+            {
+                if(null != this.player)
+                {
+                    enemyInstance.parent = this.node;
+
+                    var enemyBase = enemyInstance.getComponent(Maze_EnemyBase.EnemyBase);
+
+                    if(null != enemyBase && null != this.map)
+                    {
+                        enemyBase.map = this.map;
+
+                        enemyBase.playerInFocus = this.player;
+
+                        var playerPositionWorldCoord = this.player.node.worldPosition;
+
+                        var tileCoord: Vec2 = this.map.pointToTile(Maze_Common.toVec2( playerPositionWorldCoord ) );
+
+                        var walkableTiles = this.map.getReachableCells( tileCoord, this.minCellDistance, this.maxCellDistance );
+
+                        var creationTile = new Vec2();
+
+                        if(0 != walkableTiles.length)
+                        {
+                            var creationTileIndex = randomRangeInt(0, walkableTiles.length);
+                            creationTile = walkableTiles[creationTileIndex];
+
+                            
+                        }
+                        else
+                        {
+                            creationTile = tileCoord;
+                        }
+
+                        var creationPos:Vec2 = this.map.tileToPoint(creationTile);
+                        enemyInstance.setWorldPosition(new Vec3(creationPos.x, creationPos.y, 0));
+
+                        enemyBase.fadeIn();
+                    }
+                    else
+                    {
+                        enemyInstance.setWorldPosition(new Vec3(100, 100, 0));
+                    }
+                }
+            }
+        };
+
         if(null != this._monster )
         {
             var nodePool:NodePool|null = null;
@@ -94,6 +143,7 @@ export class Spawner extends Component
 
                     if(null != enemyComponent)
                     {
+                        prepareEnemy();
                         enemyComponent.reuse();
                     }
                 }
@@ -105,6 +155,7 @@ export class Spawner extends Component
             else
             {
                 enemyInstance = instantiate(this._monster);
+                prepareEnemy();
             }
 
             var enemyComponent = enemyInstance.getComponent( Maze_EnemyBase.EnemyBase );
@@ -154,39 +205,6 @@ export class Spawner extends Component
         if(null != monsterInstance)
         {
             this._monsters.add(monsterInstance);
-
-            monsterInstance.parent = this.node;
-
-            if(null != this.player)
-            {
-                var enemyBase = monsterInstance.getComponent(Maze_EnemyBase.EnemyBase);
-
-                if(null != enemyBase && null != this.map)
-                {
-                    enemyBase.map = this.map;
-
-                    enemyBase.playerInFocus = this.player;
-
-                    var playerPositionWorldCoord = this.player.node.worldPosition;
-
-                    var tileCoord: Vec2 = this.map.pointToTile(Maze_Common.toVec2( playerPositionWorldCoord ) );
-
-                    var walkableTiles = this.map.filterTiles( new Rect( this.innerBB.x + tileCoord.x, this.innerBB.y + tileCoord.y, this.innerBB.width, this.innerBB.height ),
-                                                                      new Rect( this.outerBB.x + tileCoord.x, this.outerBB.y + tileCoord.y, this.outerBB.width, this.outerBB.height ) );
-
-                    var creationTileIndex = randomRangeInt(0, walkableTiles.length);
-                    var creationTile = walkableTiles[creationTileIndex];
-
-                    var creationPos:Vec2 = this.map.tileToPoint(creationTile);
-                    monsterInstance.setWorldPosition(new Vec3(creationPos.x, creationPos.y, 0));
-
-                    enemyBase.fadeIn();
-                }
-                else
-                {
-                    monsterInstance.setWorldPosition(new Vec3(100, 100, 0));
-                }
-            }
         }
 
         this.tryScheduleTimer();
@@ -230,10 +248,5 @@ export class Spawner extends Component
         {
             this.DestroyEnemy(data.enemy);
         });
-    }
-
-    start () 
-    {
-        
     }
 }
