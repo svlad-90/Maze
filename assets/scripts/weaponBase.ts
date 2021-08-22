@@ -188,9 +188,8 @@ export namespace Maze_WeaponBase
         public start() 
         {
             this.node.addComponent(Maze_GlobalMouseListener.GlobalMouseListener);
-            this.node.addComponent(Maze_EasyReference.EasyReference);
 
-            this.easyReference = this.node.getComponent(Maze_EasyReference.EasyReference);
+            this.easyReference = new Maze_EasyReference.EasyReference(this.node);
 
             this._destroyBulletObserver.setObserverCallback((data:Maze_BulletBase.DestroyBulletContext) => 
             {                

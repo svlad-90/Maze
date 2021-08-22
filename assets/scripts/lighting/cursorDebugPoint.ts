@@ -50,8 +50,7 @@ export namespace Maze_CursorDebugPoint
             this._globalMouseListener = this.getComponent(Maze_GlobalMouseListener.GlobalMouseListener);
             this.addComponent(Graphics);
             this._painter = this.getComponent(Graphics);
-            this.addComponent(Maze_EasyReference.EasyReference);
-            this._easyReference = this.getComponent(Maze_EasyReference.EasyReference);
+            this._easyReference = new Maze_EasyReference.EasyReference(this.node);
             this._uiTransform = this.getComponent(UITransform);
         }
 

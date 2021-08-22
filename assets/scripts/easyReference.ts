@@ -1,12 +1,12 @@
 
-import { _decorator, Component, Node, Canvas, Camera, Scene, Director, UITransform } from 'cc';
-const { ccclass, property } = _decorator;
+import { _decorator, Canvas, Camera, Node, Scene, Director, UITransform } from 'cc';
 
 export namespace Maze_EasyReference
 {
-    @ccclass('EasyReference')
-    export class EasyReference extends Component 
+    export class EasyReference
     {
+        private _node:Node;
+
         private _canvas:Canvas|null = null;
         public get canvas() : Canvas|null
         {
@@ -25,8 +25,16 @@ export namespace Maze_EasyReference
             return this._UITransform;
         }
 
-        onLoad()
+        private _canvasUITransform:UITransform|null = null;
+        public get canvasUITransform() : UITransform|null
         {
+            return this._canvasUITransform;
+        }
+
+        constructor(node:Node)
+        {
+            this._node = node;
+
             var scene:Scene|null = Director.instance.getScene();
 
             if(null != scene)
@@ -36,20 +44,16 @@ export namespace Maze_EasyReference
                 if(null != canvasNode)
                 {
                     this._canvas = canvasNode.getComponent(Canvas);
+                    this._canvasUITransform = canvasNode.getComponent(UITransform);
 
-                    if(null != this.canvas)
+                    if(null != this._canvas)
                     {
-                        this._camera = this.canvas.cameraComponent;
+                        this._camera = this._canvas.cameraComponent;
                     }
                 }
             }
 
-            this._UITransform = this.node.getComponent(UITransform);
-        }
-
-        start () 
-        {
-            
+            this._UITransform = this._node.getComponent(UITransform);
         }
     }
 }

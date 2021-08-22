@@ -1,7 +1,7 @@
 
 import { _decorator, Component, Node, Color, Graphics, Vec2, Vec3, PolygonCollider2D, UITransform, math, PhysicsSystem2D, Canvas } from 'cc';
 import { Maze_Common } from '../common';
-import { Maze_EasyReference } from '../easyReference';
+import std from '../thirdparty/tstl/src';
 const { ccclass, property, executeInEditMode } = _decorator;
 
 export namespace Maze_GraphicsWall
@@ -73,9 +73,20 @@ export namespace Maze_GraphicsWall
             return this._vertices;
         }
 
-        private _numberOfShownVertices:number = 0;
+        // vertices with angle information. Sorted by angle from -180 to 180
+        private _angleVertices:[number,Vec2][] = [];
+        get angleVertices():[number,Vec2][]
+        {
+            return this._angleVertices;
+        }
+
         private _polygonCollider2DComp:PolygonCollider2D|null = null;
         private _UITransform:UITransform|null = null;
+
+        constructor()
+        {
+            super();
+        }
 
         onLoad()
         {
@@ -97,6 +108,13 @@ export namespace Maze_GraphicsWall
                                                             this._numberOfVertices, 
                                                             this._excludeFromCenterFactor,
                                                             halfDimensions);
+
+            this._angleVertices = [];
+            for(var vertex of this.vertices)
+            {
+                var angle = math.toDegree(Maze_Common.upVector.signAngle(vertex));
+                this._angleVertices.push( [Maze_Common.convertSingleAngleToUpVectorTo_0_360(angle), vertex] );
+            }
 
             if(null != this._UITransform)
             {

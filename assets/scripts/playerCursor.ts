@@ -45,9 +45,7 @@ export namespace Maze_PlayerCursor
         public onLoad()
         {
             super.onLoad();
-
-            this.node.addComponent(Maze_EasyReference.EasyReference);
-            this.easyReference = this.node.getComponent(Maze_EasyReference.EasyReference);
+            this.easyReference = new Maze_EasyReference.EasyReference(this.node);
         }
 
         public start() 

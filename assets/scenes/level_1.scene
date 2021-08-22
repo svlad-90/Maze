@@ -880,6 +880,7 @@
     "__prefab": null,
     "radius": 1000,
     "updateFrequencyPerSecond": 120,
+    "debug": true,
     "_id": "caW0DNgyZKzpb0UYQKe3Zj"
   },
   {
@@ -962,24 +963,12 @@
     "player": {
       "__id__": 20
     },
-    "innerBB": {
-      "__type__": "cc.Rect",
-      "x": -3,
-      "y": -3,
-      "width": 6,
-      "height": 6
-    },
-    "outerBB": {
-      "__type__": "cc.Rect",
-      "x": -4,
-      "y": -4,
-      "width": 8,
-      "height": 8
-    },
+    "minCellDistance": 5,
+    "maxCellDistance": 10,
     "map": {
       "__id__": 5
     },
-    "maxMonsterNumber": 30,
+    "maxMonsterNumber": 0,
     "_sharedGraphics": {
       "__id__": 6
     },
