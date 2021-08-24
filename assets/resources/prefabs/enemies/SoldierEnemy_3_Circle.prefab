@@ -12,7 +12,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "BulletMetal",
+    "_name": "SoldierEnemy_3_Circle",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -32,15 +32,18 @@
       },
       {
         "__id__": 10
+      },
+      {
+        "__id__": 12
       }
     ],
     "_prefab": {
-      "__id__": 12
+      "__id__": 14
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -7,
-      "y": 267,
+      "x": -82,
+      "y": 282,
       "z": 0
     },
     "_lrot": {
@@ -52,9 +55,9 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.173,
-      "y": 0.173,
-      "z": 0.173
+      "x": 0.4,
+      "y": 0.4,
+      "z": 0.4
     },
     "_layer": 33554432,
     "_euler": {
@@ -78,8 +81,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 100
+      "width": 285,
+      "height": 242.83
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -93,7 +96,7 @@
     "fileId": "f7NISe7HdAD68SLfhnddy8"
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "sp.Skeleton",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -109,33 +112,33 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 24,
-      "g": 13,
-      "b": 2,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
-    "_spriteFrame": {
-      "__uuid__": "d679b004-b3dc-4bfd-b11e-eefb5b868939@f9941",
-      "__expectedType__": "cc.SpriteFrame"
+    "loop": true,
+    "_premultipliedAlpha": true,
+    "_timeScale": 1,
+    "_useTint": false,
+    "_preCacheMode": 0,
+    "_cacheMode": 0,
+    "_defaultCacheMode": 0,
+    "_debugBones": false,
+    "_debugSlots": false,
+    "_skeletonData": {
+      "__uuid__": "cf3ea882-9f9a-4860-9d4b-0ad864de7553",
+      "__expectedType__": "sp.SkeletonData"
     },
-    "_type": 0,
-    "_fillType": 0,
-    "_sizeMode": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_useGrayscale": false,
-    "_atlas": null,
+    "defaultSkin": "default",
+    "defaultAnimation": "",
+    "_sockets": [],
+    "_debugMesh": false,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "661de4w6lJso2wLLgb+3gv"
+    "fileId": "16AfHc/H9OHJaY9nsiygzi"
   },
   {
     "__type__": "cc.RigidBody2D",
@@ -149,29 +152,29 @@
       "__id__": 7
     },
     "enabledContactListener": true,
-    "bullet": true,
-    "awakeOnLoad": true,
-    "_group": 8,
-    "_type": 1,
+    "bullet": false,
+    "awakeOnLoad": false,
+    "_group": 2,
+    "_type": 2,
     "_allowSleep": true,
     "_gravityScale": 0,
-    "_linearDamping": 0,
-    "_angularDamping": 0,
+    "_linearDamping": 10,
+    "_angularDamping": 10,
     "_linearVelocity": {
       "__type__": "cc.Vec2",
       "x": 0,
       "y": 0
     },
     "_angularVelocity": 0,
-    "_fixedRotation": false,
+    "_fixedRotation": true,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "83lU0dW6pF8aXOMg0W0mwD"
+    "fileId": "f0busmD5JG7r9Ew0mVr7CX"
   },
   {
-    "__type__": "cc.PolygonCollider2D",
+    "__type__": "cc.CircleCollider2D",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -182,106 +185,25 @@
       "__id__": 9
     },
     "tag": 0,
-    "_group": 8,
-    "_density": 0.1,
+    "_group": 1,
+    "_density": 50,
     "_sensor": false,
-    "_friction": 2,
+    "_friction": 0.2,
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
+      "x": 5.6,
+      "y": -11.2
     },
-    "_points": [
-      {
-        "__type__": "cc.Vec2",
-        "x": -7,
-        "y": 25
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -17,
-        "y": 20
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -22,
-        "y": 14
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -25,
-        "y": 7
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -25,
-        "y": -7
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -20,
-        "y": -17
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -14,
-        "y": -22
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -7,
-        "y": -25
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 7,
-        "y": -25
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 17,
-        "y": -20
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 22,
-        "y": -14
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 25,
-        "y": -7
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 25,
-        "y": 7
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 20,
-        "y": 17
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 14,
-        "y": 22
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 7,
-        "y": 25
-      }
-    ],
+    "_radius": 131.2,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "71Zxm5LqBDtaGY9jELajxS"
+    "fileId": "34kpjnI/pG8Igz39cjGQqM"
   },
   {
-    "__type__": "2ac63eFF21B6Zr7ChnNeRlK",
+    "__type__": "1d7c0sz5O5Ma7fgaDO9OJIy",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -291,11 +213,48 @@
     "__prefab": {
       "__id__": 11
     },
+    "bulletPrefab": {
+      "__uuid__": "2d3ec558-f894-4ed3-8a42-4d578b27fa70",
+      "__expectedType__": "cc.Prefab"
+    },
+    "fireRate": 100,
+    "bulletTimeAlive": 2,
+    "bulletSpeed": 5,
+    "damage": 10,
+    "bulletCollisionGroup": 5,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "d4Vl/lg9RNZ4p9GDIWndEB"
+    "fileId": "cbLgubpGNL27+99wBWkW3W"
+  },
+  {
+    "__type__": "cbed6HOJLNBl7KumjIaoZXZ",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 13
+    },
+    "health": 100,
+    "playerInFocus": null,
+    "eyesDirection": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 1,
+      "z": 0
+    },
+    "acceleration": 10,
+    "velocityMax": 10,
+    "debug": false,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "b29jh5GOxODJbVcA7WEbHu"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -305,6 +264,6 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "6bUiC3RgtJT4C8hyhWg7fb"
+    "fileId": "4cQ0XuF0ROB4OsGdm2m2E3"
   }
 ]

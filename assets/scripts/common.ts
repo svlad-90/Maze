@@ -457,15 +457,18 @@ export namespace Maze_Common
         var finalCheckAngleFrom = 0;
         var finalCheckAngleTo = 0;
 
-        if(angleTo < angleFrom && 
-        checkAngleTo < checkAngleFrom)
+        var angleToLessThanAngleFrom:boolean = angleTo < angleFrom;
+        var checkAngleToLessThanCheckAngleFrom:boolean = checkAngleTo < checkAngleFrom;
+
+        if(true == angleToLessThanAngleFrom && 
+           true == checkAngleToLessThanCheckAngleFrom)
         {
             finalAngleFrom = angleFrom;
             finalAngleTo = angleTo + 360;
             finalCheckAngleFrom = checkAngleFrom;
             finalCheckAngleTo = checkAngleTo + 360;
         }
-        else if(angleTo < angleFrom)
+        else if(true == angleToLessThanAngleFrom)
         {
             finalAngleFrom = angleFrom;
             finalAngleTo = angleTo + 360;
@@ -490,7 +493,7 @@ export namespace Maze_Common
                 finalCheckAngleTo = checkAngleTo + 360;
             }
         }
-        else if(checkAngleTo < checkAngleFrom)
+        else if(true == checkAngleToLessThanCheckAngleFrom)
         {
             finalCheckAngleFrom = checkAngleFrom;
             finalCheckAngleTo = checkAngleTo + 360;

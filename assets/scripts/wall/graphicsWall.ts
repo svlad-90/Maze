@@ -1,5 +1,6 @@
 
-import { _decorator, Component, Node, Color, Graphics, Vec2, Vec3, PolygonCollider2D, UITransform, math, PhysicsSystem2D, Canvas } from 'cc';
+import { _decorator, Component, Node, Color, Graphics, Vec2, Vec3, PolygonCollider2D, UITransform, math, PhysicsSystem2D, Canvas, RigidBody2D, Contact2DType,
+    Collider2D, IPhysics2DContact } from 'cc';
 import { Maze_Common } from '../common';
 import std from '../thirdparty/tstl/src';
 const { ccclass, property, executeInEditMode } = _decorator;
@@ -11,6 +12,10 @@ export namespace Maze_GraphicsWall
     export class GraphicsWall extends Component
     {
         private _drawn:boolean = false;
+        public set drawn(val:boolean)
+        {
+            this._drawn = val;
+        }
 
         @property (Graphics)
         private _sharedGraphics:Graphics|null = null;
@@ -82,6 +87,7 @@ export namespace Maze_GraphicsWall
 
         private _polygonCollider2DComp:PolygonCollider2D|null = null;
         private _UITransform:UITransform|null = null;
+        private _rigidBody:RigidBody2D|null = null;
 
         constructor()
         {
@@ -92,6 +98,7 @@ export namespace Maze_GraphicsWall
         {
             this._polygonCollider2DComp = this.node.getComponent(PolygonCollider2D);
             this._UITransform = this.node.getComponent(UITransform);
+            this._rigidBody = this.node.getComponent(RigidBody2D);
             
             this.generateVertices(); 
 
@@ -124,6 +131,11 @@ export namespace Maze_GraphicsWall
             if(null != this._polygonCollider2DComp)
             {
                 this._polygonCollider2DComp.points = this._vertices;
+            }
+
+            if(null != this._rigidBody)
+            {
+                this._rigidBody.sleep();
             }
         }
 

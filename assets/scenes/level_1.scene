@@ -183,8 +183,8 @@
     "_sharedGraphics": {
       "__id__": 6
     },
-    "_width": 20,
-    "_height": 20,
+    "_width": 100,
+    "_height": 100,
     "_mapNodeSize": 300,
     "_floorPrefab": {
       "__uuid__": "de779049-9428-45bf-86c9-01b80763f63a",
@@ -542,9 +542,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 245,
+      "g": 101,
+      "b": 101,
       "a": 255
     },
     "loop": true,
@@ -577,7 +577,7 @@
     "__prefab": null,
     "enabledContactListener": true,
     "bullet": false,
-    "awakeOnLoad": true,
+    "awakeOnLoad": false,
     "_group": 16,
     "_type": 2,
     "_allowSleep": true,
@@ -842,8 +842,8 @@
       "y": 1,
       "z": 0
     },
-    "acceleration": 18,
-    "velocityMax": 18,
+    "acceleration": 17,
+    "velocityMax": 20,
     "map": {
       "__id__": 5
     },
@@ -959,7 +959,7 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "spawnDelaySec": 0.25,
+    "spawnDelaySec": 0.1,
     "player": {
       "__id__": 20
     },
@@ -968,7 +968,7 @@
     "map": {
       "__id__": 5
     },
-    "maxMonsterNumber": 0,
+    "maxMonsterNumber": 50,
     "_sharedGraphics": {
       "__id__": 6
     },

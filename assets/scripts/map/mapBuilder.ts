@@ -1,9 +1,11 @@
-import { _decorator, Component, Node, Prefab, Vec2, instantiate, Vec3, UITransform, Graphics, ResolutionPolicy, math, randomRangeInt, Label, Rect, PhysicsSystem2D, ERaycast2DType, Line, Color } from 'cc';
+import { _decorator, Component, Node, Prefab, Vec2, instantiate, Vec3, UITransform, Graphics, ResolutionPolicy, 
+    math, randomRangeInt, Label, Rect, PhysicsSystem2D, ERaycast2DType, Line, Color, Sprite, NodePool } from 'cc';
 import { Maze_GraphicsWall } from '../wall/graphicsWall';
 import { Maze_MazeGenerator } from '../maze/mazeGenerator';
 import { Maze_PriorityQueue } from '../common/priorityQueue/priorityQueue.ts';
 import { Maze_Common } from '../common';
 import { Maze_DebugGraphics } from '../common/debugGraphics';
+import { Maze_EasyReference } from '../easyReference';
 import std from '../thirdparty/tstl/src';
 const { ccclass, property } = _decorator;
 
@@ -113,6 +115,7 @@ export namespace Maze_MapBuilder
             if(null != this._representationNode)
             {
                 this._graphicsWall = this._representationNode.getComponent(Maze_GraphicsWall.GraphicsWall);
+                this._sprite = this._representationNode.getComponent(Sprite);
             }
         }
         public get representationNode():Node|null
@@ -124,6 +127,12 @@ export namespace Maze_MapBuilder
         public get graphicsWall():Maze_GraphicsWall.GraphicsWall|null
         {
             return this._graphicsWall;
+        }
+
+        private _sprite:Sprite|null = null;
+        public get sprite():Sprite|null
+        {
+            return this._sprite;
         }
 
         private _label:Node|null = null;
@@ -272,6 +281,10 @@ export namespace Maze_MapBuilder
         private _wallPrefab:Prefab;
         private _sharedGraphics:Graphics;
         private _circleRays:Vec2[] = [];
+        private _easyReference:Maze_EasyReference.EasyReference|null = null;
+        private _nodePoolMap:std.TreeMap<String, NodePool> = new std.TreeMap<String, NodePool>();
+        private _defaultGraphicsWallNode:Node|null = null;
+        private _defaultGraphicsWall:Maze_GraphicsWall.GraphicsWall|null = null;
 
         private generateMaze()
         {
@@ -455,6 +468,8 @@ export namespace Maze_MapBuilder
             wallPrefab:Prefab, 
             debug:boolean )
         {
+            this._easyReference = new Maze_EasyReference.EasyReference(parentNode);
+
             var iMax = 72;
             for(var i = 0; i < iMax; ++i)
             {
@@ -517,54 +532,44 @@ export namespace Maze_MapBuilder
                 }
             }
 
+            this._defaultGraphicsWallNode = new Node();
+            this._defaultGraphicsWallNode.addComponent(Maze_GraphicsWall.GraphicsWall);
+            this._defaultGraphicsWallNode.active = false;
+            this._defaultGraphicsWallNode.parent = parentNode;
+            parentNode.addChild(this._defaultGraphicsWallNode);
+            this._defaultGraphicsWall = this._defaultGraphicsWallNode.getComponent(Maze_GraphicsWall.GraphicsWall);
+
+            if(null != this._defaultGraphicsWall)
+            {
+                this._defaultGraphicsWall.Dimensions = new Vec2(this._mapNodeSize, this._mapNodeSize);
+                this._defaultGraphicsWall.SharedGraphics = this._sharedGraphics;
+                this._defaultGraphicsWall.ExcludeFromCenterFactor = 1;
+                this._defaultGraphicsWall.NumberOfVertices = 4;
+            }
+            else
+            {
+                throw("Error! this._defaultGraphicsWallNode == null!");
+            }
+
             // generate maze
             this.generateMaze();
 
-            var leftBottomPoint = this.getLeftBottompWorldPosition();
-
             // create representation nodes
-            for(var row:number = 0; row < height; ++row)
+            this.determineVisibleCells();
+
+            if(true == debug)
             {
-                for(var column:number = 0; column < width; ++column)
+                for(var row:number = 0; row < height; ++row)
                 {
-                    var mapNode = this.MapNodes[row][column];
+                    for(var column:number = 0; column < width; ++column)
+                    {
+                        var mapNode = this.MapNodes[row][column];
 
-                    if(true == mapNode.isWalkable)
-                    {
-                        mapNode.representationNode = instantiate(this._floorPrefab);
-                        
-                        var uiTransform = mapNode.representationNode.getComponent(UITransform);
-                        
-                        if(uiTransform != null)
-                        {
-                            uiTransform.setContentSize( this._mapNodeSize, this._mapNodeSize );
-                        }
-                    }
-                    else
-                    {
-                        mapNode.representationNode = instantiate(this._wallPrefab);
-                        
-                        var graphicsWall = mapNode.representationNode.getComponent(Maze_GraphicsWall.GraphicsWall);
-                        
-                        if(graphicsWall != null)
-                        {
-                            graphicsWall.Dimensions = new Vec2(this._mapNodeSize, this._mapNodeSize);
-                            graphicsWall.SharedGraphics = this._sharedGraphics;
-                            graphicsWall.ExcludeFromCenterFactor = 0.9;
-                            graphicsWall.NumberOfVertices = 25;
-                        }
-                    }
-        
-                    this._parentNode.addChild(mapNode.representationNode);
-                    mapNode.representationNode.parent = this._parentNode;
-        
-                    var x = leftBottomPoint.x + ( column * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
-                    var y = leftBottomPoint.y + ( ( this._height - row ) * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
-        
-                    mapNode.representationNode.setWorldPosition( new Vec3( x, y, 0  ) );
+                        var leftBottomPoint = this.getLeftBottompWorldPosition();
 
-                    if(true == debug)
-                    {
+                        var x = leftBottomPoint.x + ( mapNode.x * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
+                        var y = leftBottomPoint.y + ( ( this._height - mapNode.y ) * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
+
                         mapNode.label = new Node();
                         this._parentNode.addChild(mapNode.label);
                         mapNode.label.parent = this._parentNode;
@@ -578,6 +583,224 @@ export namespace Maze_MapBuilder
                             label.string = String(mapNode.x) + ", " + String(mapNode.y);
                         }
                     }
+                }
+            }
+        }
+
+        protected getNodePool(mapNode:MapNode):NodePool|null
+        {
+            var result:NodePool|null = null;
+
+            if(null != mapNode)
+            {
+                var poolName = "";
+
+                if(true == mapNode.isWalkable)
+                {
+                    if(null != this._floorPrefab)
+                    {
+                        poolName = this._floorPrefab.data.name;
+                    }
+                }
+                else
+                {
+                    if(null != this._wallPrefab)
+                    {
+                        poolName = this._wallPrefab.data.name;
+                    }
+                }
+
+                if(poolName.length > 0)
+                {
+                    if(this._nodePoolMap.has(poolName))
+                    {
+                        result = this._nodePoolMap.get(poolName);
+                    }
+                    else
+                    {
+                        result = new NodePool();
+                        this._nodePoolMap.set(poolName,result);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        protected assignRepresentationNode(mapNode:MapNode)
+        {
+            var representationNodeInstance:Node|null = null;
+
+            if(null != mapNode && null == mapNode.representationNode)
+            {
+                var nodePool = this.getNodePool(mapNode);
+
+                if(null != nodePool)
+                {
+                    if(0 != nodePool.size())
+                    {
+                        representationNodeInstance = nodePool.get();
+                    }
+                    else
+                    {
+                        if(mapNode.isWalkable)
+                        {
+                            if(null != this._floorPrefab)
+                            {
+                                representationNodeInstance = instantiate(this._floorPrefab);
+
+                                var uiTransform = representationNodeInstance.getComponent(UITransform);
+                        
+                                if(uiTransform != null)
+                                {
+                                    uiTransform.setContentSize( this._mapNodeSize, this._mapNodeSize );
+                                }
+                            }
+                            else
+                            {
+                                throw("Error! this._floorPrefab == null");
+                            }
+                        }
+                        else
+                        {
+                            if(null != this._wallPrefab)
+                            {
+                                representationNodeInstance = instantiate(this._wallPrefab);
+
+                                var graphicsWall = representationNodeInstance.getComponent(Maze_GraphicsWall.GraphicsWall);
+                        
+                                if(graphicsWall != null)
+                                {
+                                    graphicsWall.Dimensions = new Vec2(this._mapNodeSize, this._mapNodeSize);
+                                    graphicsWall.SharedGraphics = this._sharedGraphics;
+                                    graphicsWall.ExcludeFromCenterFactor = 0.9;
+                                    graphicsWall.NumberOfVertices = 25;
+                                }
+                                else
+                                {
+                                    throw("Error! Wall prefab does not contain GraphicsWall component!");
+                                }
+                            }
+                            else
+                            {
+                                throw("Error! this._wallPrefab == null");
+                            }
+                        }
+                    }     
+                }
+                
+                if(null != representationNodeInstance)
+                {
+                    mapNode.representationNode = representationNodeInstance;
+
+                    this._parentNode.insertChild(mapNode.representationNode,0);
+                    mapNode.representationNode.parent = this._parentNode;
+        
+                    var leftBottomPoint = this.getLeftBottompWorldPosition();
+
+                    var x = leftBottomPoint.x + ( mapNode.x * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
+                    var y = leftBottomPoint.y + ( ( this._height - mapNode.y ) * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
+        
+                    mapNode.representationNode.setWorldPosition( new Vec3( x, y, 0  ) );
+                }
+                else
+                {
+                    throw("Error! representationNodeInstance == null!");
+                }
+            }
+        }
+
+        protected releaseRepresentationNode(mapNode:MapNode)
+        {
+            if(null != mapNode && null != mapNode.representationNode)
+            {
+                var nodePool = this.getNodePool(mapNode);
+
+                if(null != nodePool)
+                {
+                    nodePool.put(mapNode.representationNode);
+                    mapNode.representationNode = null;
+                }
+            }
+        }
+
+        private currentVisibleCellsRect = new Rect();
+
+        determineVisibleCells()
+        {
+            if(null != this._easyReference && null != this._easyReference.camera && null != this._easyReference.canvasUITransform)
+            {
+                var centerPoint = Maze_Common.toVec2(this._easyReference.camera.screenToWorld(new Vec3(this._easyReference.canvasUITransform.contentSize.x / 2,
+                    this._easyReference.canvasUITransform.contentSize.y / 2, 0)));
+                var topLeftPoint = Maze_Common.toVec2(this._easyReference.camera.screenToWorld(new Vec3(0, this._easyReference.canvasUITransform.contentSize.y, 0)));
+                var bottomRightPoint = Maze_Common.toVec2(this._easyReference.camera.screenToWorld(new Vec3(this._easyReference.canvasUITransform.contentSize.x, 0, 0)));
+                
+                var topLeftTileCoord = this.pointToTile(topLeftPoint);
+                var bottomRightTileCoord = this.pointToTile(bottomRightPoint);
+
+                var additionalRange:number = 3;
+
+                var newVisibleRect = new Rect(topLeftTileCoord.x - additionalRange, topLeftTileCoord.y - additionalRange, bottomRightTileCoord.x - topLeftTileCoord.x + additionalRange*2, bottomRightTileCoord.y - topLeftTileCoord.y + additionalRange*2);
+                newVisibleRect = this.normalizeRect(newVisibleRect);
+
+                var shouldRedrawWalls:boolean = false;
+
+                if(false == this.currentVisibleCellsRect.equals(newVisibleRect))
+                {
+                    var intersectionRect = new Rect();
+                    Rect.intersection(intersectionRect, this.currentVisibleCellsRect, newVisibleRect);
+
+                    for(var row = this.currentVisibleCellsRect.y; row < this.currentVisibleCellsRect.yMax; ++row)
+                    {
+                        for(var column = this.currentVisibleCellsRect.x; column < this.currentVisibleCellsRect.xMax; ++column)
+                        {
+                            var mapNode = this.MapNodes[row][column];
+
+                            if((row < intersectionRect.y || row >= intersectionRect.yMax) ||
+                               (column < intersectionRect.x || column >= intersectionRect.xMax))
+                            {
+                                if(false == mapNode.isWalkable)
+                                {
+                                    shouldRedrawWalls = true;
+                                }
+
+                                this.releaseRepresentationNode(mapNode);
+                            }
+                            else
+                            {
+                                this.assignRepresentationNode(mapNode);
+                            }
+                        }
+                    }
+
+                    for(var row = newVisibleRect.y; row < newVisibleRect.yMax; ++row)
+                    {
+                        for(var column = newVisibleRect.x; column < newVisibleRect.xMax; ++column)
+                        {
+                            var mapNode = this.MapNodes[row][column];
+
+                            if((row < intersectionRect.y || row >= intersectionRect.yMax) ||
+                               (column < intersectionRect.x || column >= intersectionRect.xMax))
+                            {
+                                this.assignRepresentationNode(mapNode);
+                            }
+
+                            if(false == mapNode.isWalkable && true == shouldRedrawWalls)
+                            {
+                                if(null != mapNode && null != mapNode.graphicsWall)
+                                {
+                                    mapNode.graphicsWall.drawn = false;
+                                }
+                            }
+                        }
+                    }
+
+                    if(true == shouldRedrawWalls && null != this._sharedGraphics)
+                    {
+                        this._sharedGraphics.clear();
+                    }
+
+                    this.currentVisibleCellsRect = newVisibleRect;
                 }
             }
         }
@@ -800,82 +1023,75 @@ export namespace Maze_MapBuilder
 
                     if(null != mapNode)
                     {
-                        if(null != mapNode.representationNode)
+                        var recrXMin = nodePos.x - this._mapNodeSize/2;
+                        var rectYMin = nodePos.y - this._mapNodeSize/2;
+                        var rectXMax = nodePos.x + this._mapNodeSize/2;
+                        var rectYMax = nodePos.y + this._mapNodeSize/2;
+
+                        if(foundIntersections.length < 2 && false == skipEdges.has(eNeighbourType.LEFT))
                         {
-                            var recrXMin = nodePos.x - this._mapNodeSize/2;
-                            var rectYMin = nodePos.y - this._mapNodeSize/2;
-                            var rectXMax = nodePos.x + this._mapNodeSize/2;
-                            var rectYMax = nodePos.y + this._mapNodeSize/2;
+                            intersectionResult = Maze_Common.linesCrossOptimized(recrXMin, rectYMin, recrXMin, rectYMax, from.x, from.y, to.x, to.y, intersection);
 
-                            if(foundIntersections.length < 2 && false == skipEdges.has(eNeighbourType.LEFT))
+                            if(true == intersectionResult[0])
                             {
-                                intersectionResult = Maze_Common.linesCrossOptimized(recrXMin, rectYMin, recrXMin, rectYMax, from.x, from.y, to.x, to.y, intersection);
-
-                                if(true == intersectionResult[0])
-                                {
-                                    foundIntersections.push( [mapNode.leftSibling, eNeighbourType.RIGHT] );
-                                }
-                            }
-
-                            if(foundIntersections.length < 2 && false == skipEdges.has(eNeighbourType.TOP))
-                            {
-                                intersectionResult = Maze_Common.linesCrossOptimized(recrXMin, rectYMax, rectXMax, rectYMax, from.x, from.y, to.x, to.y, intersection);
-
-                                if(true == intersectionResult[0])
-                                {
-                                    foundIntersections.push( [mapNode.topSibling, eNeighbourType.BOTTOM] );
-                                }
-                            }
-
-                            if(foundIntersections.length < 2 && false == skipEdges.has(eNeighbourType.RIGHT))
-                            {
-                                intersectionResult = Maze_Common.linesCrossOptimized(rectXMax, rectYMax, rectXMax, rectYMin, from.x, from.y, to.x, to.y, intersection);
-
-                                if(true == intersectionResult[0])
-                                {
-                                    foundIntersections.push( [mapNode.rightSibling, eNeighbourType.LEFT] );
-                                } 
-                            }
-
-                            if(foundIntersections.length < 2 && false == skipEdges.has(eNeighbourType.BOTTOM))
-                            {
-                                intersectionResult = Maze_Common.linesCrossOptimized(rectXMax, rectYMin, recrXMin, rectYMin, from.x, from.y, to.x, to.y, intersection);
-
-                                if(true == intersectionResult[0])
-                                {
-                                    foundIntersections.push( [mapNode.bottomSibling, eNeighbourType.TOP] );
-                                } 
-                            }
-
-                            skipEdges.clear();
-
-                            if(1 == foundIntersections.length)
-                            {
-                                skipEdges.add(foundIntersections[0][1]);
-                                mapNode = foundIntersections[0][0];
-                            }
-                            else if(0 == foundIntersections.length)
-                            {
-                                mapNode = null;
-                            }
-                            else if(foundIntersections.length == 2)
-                            {
-                                skipEdges.add(foundIntersections[0][1]);
-                                skipEdges.add(foundIntersections[1][1]);
-
-                                cornerCaseHandlerIsActive = true;
-                                cornerCaseHandlerFirstNode = foundIntersections[0][0];
-                                cornerCaseHandlerSecondNode = foundIntersections[1][0];
-                                cornerCaseHandlerThirdNode = this.getInvertedNeighbour(foundIntersections[0][0], foundIntersections[1][1]);
-                                cornerCaseHandlerThirdNodeFirstSkipEdge = this.invertNeighbourType(foundIntersections[0][1]);
-                                cornerCaseHandlerThirdNodeSecondSkipEdge = this.invertNeighbourType(foundIntersections[1][1]);
-
-                                mapNode = cornerCaseHandlerFirstNode;
+                                foundIntersections.push( [mapNode.leftSibling, eNeighbourType.RIGHT] );
                             }
                         }
-                        else
+
+                        if(foundIntersections.length < 2 && false == skipEdges.has(eNeighbourType.TOP))
                         {
-                            throw("Error! mapNode.representationNode == null!");
+                            intersectionResult = Maze_Common.linesCrossOptimized(recrXMin, rectYMax, rectXMax, rectYMax, from.x, from.y, to.x, to.y, intersection);
+
+                            if(true == intersectionResult[0])
+                            {
+                                foundIntersections.push( [mapNode.topSibling, eNeighbourType.BOTTOM] );
+                            }
+                        }
+
+                        if(foundIntersections.length < 2 && false == skipEdges.has(eNeighbourType.RIGHT))
+                        {
+                            intersectionResult = Maze_Common.linesCrossOptimized(rectXMax, rectYMax, rectXMax, rectYMin, from.x, from.y, to.x, to.y, intersection);
+
+                            if(true == intersectionResult[0])
+                            {
+                                foundIntersections.push( [mapNode.rightSibling, eNeighbourType.LEFT] );
+                            } 
+                        }
+
+                        if(foundIntersections.length < 2 && false == skipEdges.has(eNeighbourType.BOTTOM))
+                        {
+                            intersectionResult = Maze_Common.linesCrossOptimized(rectXMax, rectYMin, recrXMin, rectYMin, from.x, from.y, to.x, to.y, intersection);
+
+                            if(true == intersectionResult[0])
+                            {
+                                foundIntersections.push( [mapNode.bottomSibling, eNeighbourType.TOP] );
+                            } 
+                        }
+
+                        skipEdges.clear();
+
+                        if(1 == foundIntersections.length)
+                        {
+                            skipEdges.add(foundIntersections[0][1]);
+                            mapNode = foundIntersections[0][0];
+                        }
+                        else if(0 == foundIntersections.length)
+                        {
+                            mapNode = null;
+                        }
+                        else if(foundIntersections.length == 2)
+                        {
+                            skipEdges.add(foundIntersections[0][1]);
+                            skipEdges.add(foundIntersections[1][1]);
+
+                            cornerCaseHandlerIsActive = true;
+                            cornerCaseHandlerFirstNode = foundIntersections[0][0];
+                            cornerCaseHandlerSecondNode = foundIntersections[1][0];
+                            cornerCaseHandlerThirdNode = this.getInvertedNeighbour(foundIntersections[0][0], foundIntersections[1][1]);
+                            cornerCaseHandlerThirdNodeFirstSkipEdge = this.invertNeighbourType(foundIntersections[0][1]);
+                            cornerCaseHandlerThirdNodeSecondSkipEdge = this.invertNeighbourType(foundIntersections[1][1]);
+
+                            mapNode = cornerCaseHandlerFirstNode;
                         }
                     }
                 }
@@ -917,6 +1133,11 @@ export namespace Maze_MapBuilder
                     if(false == mapNode.isWalkable)
                     {
                         var graphicsWall = mapNode.graphicsWall;
+
+                        if(null == graphicsWall)
+                        {
+                            graphicsWall = this._defaultGraphicsWall;
+                        }
 
                         if(null != graphicsWall)
                         {
@@ -1149,6 +1370,7 @@ export namespace Maze_MapBuilder
                     var visibilityCheckTmpVec1 = new Vec2();
                     var visibilityCheckTmpVec2 = new Vec2();
                     var visibilityCheckTmpVec3 = new Vec2();
+                    var intersectionTmpVec = new Vec2();
 
                     for(var row = tileRect.y; row <= yMax; ++row)
                     {
@@ -1160,115 +1382,113 @@ export namespace Maze_MapBuilder
                             
                             if(false == mapNode.isWalkable)
                             {
-                                if(null != mapNode.representationNode)
+                                var graphicsWall:Maze_GraphicsWall.GraphicsWall|null = mapNode.graphicsWall;
+
+                                if(null == graphicsWall)
                                 {
-                                    var graphicsWall = mapNode.graphicsWall;
-                            
-                                    if(null != graphicsWall)
+                                    graphicsWall = this._defaultGraphicsWall;
+                                }
+                        
+                                if(null != graphicsWall)
+                                {
+                                    var counter = 0;
+
+                                    for(var vertex of graphicsWall.vertices)
                                     {
-                                        var counter = 0;
+                                        vertexWorldCoordinate.x = vertex.x;
+                                        vertexWorldCoordinate.y = vertex.y;
+                                        vertexWorldCoordinate.add(nodePos);
 
-                                        for(var vertex of graphicsWall.vertices)
+                                        if(true == Maze_Common.isPointInsideCircle(vertexWorldCoordinate, point, radius))
                                         {
-                                            vertexWorldCoordinate.x = vertex.x;
-                                            vertexWorldCoordinate.y = vertex.y;
-                                            vertexWorldCoordinate.add(nodePos);
+                                            // Here we should put in the impactingWallVertices collection only the vertices, for which 
+                                            // both edges, which are containing them are "looking at the origin point"
 
-                                            if(true == Maze_Common.isPointInsideCircle(vertexWorldCoordinate, point, radius))
+                                            var line1:[number,number,number,number] = [0,0,0,0];
+                                            var line2:[number,number,number,number] = [0,0,0,0];
+
+                                            if(counter == 0)
                                             {
-                                                // Here we should put in the impactingWallVertices collection only the vertices, for which 
-                                                // both edges, which are containing them are "looking at the origin point"
-
-                                                var line1:[number,number,number,number] = [0,0,0,0];
-                                                var line2:[number,number,number,number] = [0,0,0,0];
-
-                                                if(counter == 0)
-                                                {
-                                                    line1[0] = nodePos.x + graphicsWall.vertices[graphicsWall.vertices.length - 1].x;
-                                                    line1[1] = nodePos.y + graphicsWall.vertices[graphicsWall.vertices.length - 1].y;
-                                                    line1[2] = nodePos.x + graphicsWall.vertices[counter].x;
-                                                    line1[3] = nodePos.y + graphicsWall.vertices[counter].y;
-                                                    line2[0] = nodePos.x + graphicsWall.vertices[counter].x;
-                                                    line2[1] = nodePos.y + graphicsWall.vertices[counter].y;
-                                                    line2[2] = nodePos.x + graphicsWall.vertices[counter + 1].x;
-                                                    line2[3] = nodePos.y + graphicsWall.vertices[counter + 1].y;
-                                                }
-                                                else if(counter == graphicsWall.vertices.length - 1)
-                                                {
-                                                    line1[0] = nodePos.x + graphicsWall.vertices[counter - 1].x;
-                                                    line1[1] = nodePos.y + graphicsWall.vertices[counter - 1].y;
-                                                    line1[2] = nodePos.x + graphicsWall.vertices[counter].x;
-                                                    line1[3] = nodePos.y + graphicsWall.vertices[counter].y;
-                                                    line2[0] = nodePos.x + graphicsWall.vertices[counter].x;
-                                                    line2[1] = nodePos.y + graphicsWall.vertices[counter].y;
-                                                    line2[2] = nodePos.x + graphicsWall.vertices[0].x;
-                                                    line2[3] = nodePos.y + graphicsWall.vertices[0].y;
-                                                }
-                                                else
-                                                {
-                                                    line1[0] = nodePos.x + graphicsWall.vertices[counter - 1].x;
-                                                    line1[1] = nodePos.y + graphicsWall.vertices[counter - 1].y;
-                                                    line1[2] = nodePos.x + graphicsWall.vertices[counter].x;
-                                                    line1[3] = nodePos.y + graphicsWall.vertices[counter].y;
-                                                    line2[0] = nodePos.x + graphicsWall.vertices[counter].x;
-                                                    line2[1] = nodePos.y + graphicsWall.vertices[counter].y;
-                                                    line2[2] = nodePos.x + graphicsWall.vertices[counter + 1].x;
-                                                    line2[3] = nodePos.y + graphicsWall.vertices[counter + 1].y;
-                                                }
-
-                                                // here we should check whether the side lines intersect with lines which are formed by "previousm, this", "this, next" lines
-                                                visibilityCheckTmpVec1.x = line1[0];
-                                                visibilityCheckTmpVec1.y = line1[1];
-                                                visibilityCheckTmpVec2.x = line1[0];
-                                                visibilityCheckTmpVec2.y = line1[1];
-                                                visibilityCheckTmpVec3.x = line1[2];
-                                                visibilityCheckTmpVec3.y = line1[3];
-                                                var angle1 = math.toDegree(visibilityCheckTmpVec1.subtract(point).signAngle(visibilityCheckTmpVec3.subtract(visibilityCheckTmpVec2)));
-                                                visibilityCheckTmpVec1.x = line2[0];
-                                                visibilityCheckTmpVec1.y = line2[1];
-                                                visibilityCheckTmpVec2.x = line2[0];
-                                                visibilityCheckTmpVec2.y = line2[1];
-                                                visibilityCheckTmpVec3.x = line2[2];
-                                                visibilityCheckTmpVec3.y = line2[3];
-                                                var angle2 = math.toDegree(visibilityCheckTmpVec1.subtract(point).signAngle(visibilityCheckTmpVec3.subtract(visibilityCheckTmpVec2)));
-                                                if(angle1 < 0 && angle1 >= -180 ||
-                                                   angle2 < 0 && angle2 >= -180)
-                                                {
-                                                    impactingWallVertices.push([vertexWorldCoordinate.x,vertexWorldCoordinate.y]);
-
-                                                    clockwizeAdditionalVec.x = vertexWorldCoordinate.x;
-                                                    clockwizeAdditionalVec.y = vertexWorldCoordinate.y;
-                                                    clockwizeAdditionalVec.subtract(point).rotate(-0.001).normalize().multiplyScalar(radius).add(point);
-    
-                                                    if(false == Maze_Common.linesCrossOptimized(line1[0], line1[1], line1[2], line1[3], point.x, point.y, clockwizeAdditionalVec.x, clockwizeAdditionalVec.y)[0] &&
-                                                    false == Maze_Common.linesCrossOptimized(line2[0], line2[1], line2[2], line2[3], point.x, point.y, clockwizeAdditionalVec.x, clockwizeAdditionalVec.y)[0])
-                                                    {
-                                                        impactingWallVertices.push([clockwizeAdditionalVec.x,clockwizeAdditionalVec.y]);
-                                                    }
-                                                    
-                                                    counterClockwizeAdditionalVec.x = vertexWorldCoordinate.x;
-                                                    counterClockwizeAdditionalVec.y = vertexWorldCoordinate.y;
-                                                    counterClockwizeAdditionalVec.subtract(point).rotate(0.001).normalize().multiplyScalar(radius).add(point);
-    
-                                                    if(false == Maze_Common.linesCrossOptimized(line1[0], line1[1], line1[2], line1[3], point.x, point.y, counterClockwizeAdditionalVec.x, counterClockwizeAdditionalVec.y)[0] &&
-                                                    false == Maze_Common.linesCrossOptimized(line2[0], line2[1], line2[2], line2[3], point.x, point.y, counterClockwizeAdditionalVec.x, counterClockwizeAdditionalVec.y)[0])
-                                                    {
-                                                        impactingWallVertices.push([counterClockwizeAdditionalVec.x, counterClockwizeAdditionalVec.y]);
-                                                    }
-                                                }
+                                                line1[0] = nodePos.x + graphicsWall.vertices[graphicsWall.vertices.length - 1].x;
+                                                line1[1] = nodePos.y + graphicsWall.vertices[graphicsWall.vertices.length - 1].y;
+                                                line1[2] = nodePos.x + graphicsWall.vertices[counter].x;
+                                                line1[3] = nodePos.y + graphicsWall.vertices[counter].y;
+                                                line2[0] = nodePos.x + graphicsWall.vertices[counter].x;
+                                                line2[1] = nodePos.y + graphicsWall.vertices[counter].y;
+                                                line2[2] = nodePos.x + graphicsWall.vertices[counter + 1].x;
+                                                line2[3] = nodePos.y + graphicsWall.vertices[counter + 1].y;
+                                            }
+                                            else if(counter == graphicsWall.vertices.length - 1)
+                                            {
+                                                line1[0] = nodePos.x + graphicsWall.vertices[counter - 1].x;
+                                                line1[1] = nodePos.y + graphicsWall.vertices[counter - 1].y;
+                                                line1[2] = nodePos.x + graphicsWall.vertices[counter].x;
+                                                line1[3] = nodePos.y + graphicsWall.vertices[counter].y;
+                                                line2[0] = nodePos.x + graphicsWall.vertices[counter].x;
+                                                line2[1] = nodePos.y + graphicsWall.vertices[counter].y;
+                                                line2[2] = nodePos.x + graphicsWall.vertices[0].x;
+                                                line2[3] = nodePos.y + graphicsWall.vertices[0].y;
+                                            }
+                                            else
+                                            {
+                                                line1[0] = nodePos.x + graphicsWall.vertices[counter - 1].x;
+                                                line1[1] = nodePos.y + graphicsWall.vertices[counter - 1].y;
+                                                line1[2] = nodePos.x + graphicsWall.vertices[counter].x;
+                                                line1[3] = nodePos.y + graphicsWall.vertices[counter].y;
+                                                line2[0] = nodePos.x + graphicsWall.vertices[counter].x;
+                                                line2[1] = nodePos.y + graphicsWall.vertices[counter].y;
+                                                line2[2] = nodePos.x + graphicsWall.vertices[counter + 1].x;
+                                                line2[3] = nodePos.y + graphicsWall.vertices[counter + 1].y;
                                             }
 
-                                            ++counter;
+                                            // here we should check whether the side lines intersect with lines which are formed by "previousm, this", "this, next" lines
+                                            visibilityCheckTmpVec1.x = line1[0];
+                                            visibilityCheckTmpVec1.y = line1[1];
+                                            visibilityCheckTmpVec2.x = line1[0];
+                                            visibilityCheckTmpVec2.y = line1[1];
+                                            visibilityCheckTmpVec3.x = line1[2];
+                                            visibilityCheckTmpVec3.y = line1[3];
+                                            var angle1 = math.toDegree(visibilityCheckTmpVec1.subtract(point).signAngle(visibilityCheckTmpVec3.subtract(visibilityCheckTmpVec2)));
+                                            visibilityCheckTmpVec1.x = line2[0];
+                                            visibilityCheckTmpVec1.y = line2[1];
+                                            visibilityCheckTmpVec2.x = line2[0];
+                                            visibilityCheckTmpVec2.y = line2[1];
+                                            visibilityCheckTmpVec3.x = line2[2];
+                                            visibilityCheckTmpVec3.y = line2[3];
+                                            var angle2 = math.toDegree(visibilityCheckTmpVec1.subtract(point).signAngle(visibilityCheckTmpVec3.subtract(visibilityCheckTmpVec2)));
+                                            if(angle1 < 0 && angle1 >= -180 ||
+                                                angle2 < 0 && angle2 >= -180)
+                                            {
+                                                impactingWallVertices.push([vertexWorldCoordinate.x,vertexWorldCoordinate.y]);
+
+                                                clockwizeAdditionalVec.x = vertexWorldCoordinate.x;
+                                                clockwizeAdditionalVec.y = vertexWorldCoordinate.y;
+                                                clockwizeAdditionalVec.subtract(point).rotate(-0.001).normalize().multiplyScalar(radius).add(point);
+
+                                                if(false == Maze_Common.linesCrossOptimized(line1[0], line1[1], line1[2], line1[3], point.x, point.y, clockwizeAdditionalVec.x, clockwizeAdditionalVec.y, intersectionTmpVec)[0] &&
+                                                false == Maze_Common.linesCrossOptimized(line2[0], line2[1], line2[2], line2[3], point.x, point.y, clockwizeAdditionalVec.x, clockwizeAdditionalVec.y, intersectionTmpVec)[0])
+                                                {
+                                                    impactingWallVertices.push([clockwizeAdditionalVec.x,clockwizeAdditionalVec.y]);
+                                                }
+                                                
+                                                counterClockwizeAdditionalVec.x = vertexWorldCoordinate.x;
+                                                counterClockwizeAdditionalVec.y = vertexWorldCoordinate.y;
+                                                counterClockwizeAdditionalVec.subtract(point).rotate(0.001).normalize().multiplyScalar(radius).add(point);
+
+                                                if(false == Maze_Common.linesCrossOptimized(line1[0], line1[1], line1[2], line1[3], point.x, point.y, counterClockwizeAdditionalVec.x, counterClockwizeAdditionalVec.y, intersectionTmpVec)[0] &&
+                                                false == Maze_Common.linesCrossOptimized(line2[0], line2[1], line2[2], line2[3], point.x, point.y, counterClockwizeAdditionalVec.x, counterClockwizeAdditionalVec.y, intersectionTmpVec)[0])
+                                                {
+                                                    impactingWallVertices.push([counterClockwizeAdditionalVec.x, counterClockwizeAdditionalVec.y]);
+                                                }
+                                            }
                                         }
-                                    }
-                                    else
-                                    {
-                                        throw("Error! Non-walkable cell is not of type GraphicsWall!");
+
+                                        ++counter;
                                     }
                                 }
                                 else
                                 {
-                                    throw("Error! Wall's representation node is null!");
+                                    throw("Error! Non-walkable cell is not of type GraphicsWall!");
                                 }
                             }
                             else
@@ -1352,29 +1572,25 @@ export namespace Maze_MapBuilder
                     // yes, we are inside the wall
                     var mapNode = this.MapNodes[tileCoord.y][tileCoord.x];
 
-                    // do we have a representation node?
-                    if(null != mapNode.representationNode)
-                    {
-                        // Yes, we have it
-                        var graphicsWall = mapNode.representationNode.getComponent(Maze_GraphicsWall.GraphicsWall);
-                        
-                        // is it a graphics wall?
-                        if(null != graphicsWall)
-                        {
-                            // Yes it is. 
-                            var graphicsWallWorldPosition = Maze_Common.toVec2( graphicsWall.node.worldPosition );
-                            var vertices = graphicsWall.vertices;
+                    // is it a graphics wall?
+                    var graphicsWall:Maze_GraphicsWall.GraphicsWall|null = mapNode.graphicsWall;
 
-                            // Then, let's fetch all the vertices of the wall as a result.
-                            for(var vertex of vertices)
-                            {
-                                var shiftedVertex = vertex.clone().add(graphicsWallWorldPosition);
-                                result.push( [shiftedVertex.x,shiftedVertex.y] );
-                            }
-                        }
-                        else
+                    if(null == graphicsWall)
+                    {
+                        graphicsWall = this._defaultGraphicsWall;
+                    }
+
+                    if(null != graphicsWall)
+                    {
+                        // Yes, it is.
+                        var graphicsWallWorldPosition = Maze_Common.toVec2( graphicsWall.node.worldPosition );
+                        var vertices = graphicsWall.vertices;
+
+                        // Then, let's fetch all the vertices of the wall as a result.
+                        for(var vertex of vertices)
                         {
-                            throw("Error! Non-walkable cell is not of type GraphicsWall!");
+                            var shiftedVertex = vertex.clone().add(graphicsWallWorldPosition);
+                            result.push( [shiftedVertex.x,shiftedVertex.y] );
                         }
                     }
                     else
@@ -1424,9 +1640,9 @@ export namespace Maze_MapBuilder
             {
                 result.width = 0;
             }
-            else if(rect.x + rect.width > this._width)
+            else if(result.x + rect.width > this._width)
             {
-                result.width = this._width - rect.x;
+                result.width = this._width - result.x;
             }
             else
             {
@@ -1437,9 +1653,9 @@ export namespace Maze_MapBuilder
             {
                 result.height = 0;
             }
-            else if(rect.y + rect.height > this._height)
+            else if(result.y + rect.height > this._height)
             {
-                result.height = this._height - rect.y;
+                result.height = this._height - result.y;
             }
             else
             {
@@ -1707,10 +1923,6 @@ export namespace Maze_MapBuilder
             this.createMap();
         }
 
-        start()
-        {
-        }
-
         filterTiles( innerRange:math.Rect, outterRange:math.Rect, walkable:boolean = true) : Vec2[]
         {
             if(null != this._map)
@@ -1746,14 +1958,7 @@ export namespace Maze_MapBuilder
                     {
                         if(null != node)
                         {
-                            if(null != node.representationNode)
-                            {
-                                result.push( Maze_Common.toVec2( node.representationNode.worldPosition ) );
-                            }
-                            else
-                            {
-                                throw("Error! null == nodeInstance.representationNode!");
-                            }
+                            result.push( this.tileToPoint(node.tileCoord) );
                         }
                     }
                 }
@@ -1842,6 +2047,14 @@ export namespace Maze_MapBuilder
             }
 
             throw("Error! this._map == null!");
+        }
+
+        update()
+        {
+            if(this._map != null)
+            {
+                this._map.determineVisibleCells();
+            }
         }
     }
 }

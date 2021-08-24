@@ -212,7 +212,7 @@ export class Spawner extends Component
 
     onLoad()
     {
-        resources.load('prefabs/enemies/SoldierEnemy', (err: Error | null, prefab:Prefab) => 
+        resources.load('prefabs/enemies/SoldierEnemy_3_Circle', (err: Error | null, prefab:Prefab) => 
         {
             if(null == err)
             {
