@@ -35,18 +35,15 @@
       },
       {
         "__id__": 12
-      },
-      {
-        "__id__": 14
       }
     ],
     "_prefab": {
-      "__id__": 16
+      "__id__": 14
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -202,
-      "y": -95,
+      "x": -375,
+      "y": -53,
       "z": 0
     },
     "_lrot": {
@@ -361,7 +358,7 @@
       "__uuid__": "2d3ec558-f894-4ed3-8a42-4d578b27fa70",
       "__expectedType__": "cc.Prefab"
     },
-    "fireRate": 0.5,
+    "fireRate": 100,
     "bulletTimeAlive": 2,
     "bulletSpeed": 5,
     "damage": 10,
@@ -394,32 +391,11 @@
     "acceleration": 10,
     "velocityMax": 10,
     "debug": false,
-    "wallCollisionGroup": 2,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "b29jh5GOxODJbVcA7WEbHu"
-  },
-  {
-    "__type__": "49c5cGjZ7NIr57wfMLEjBTY",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 15
-    },
-    "radius": 500,
-    "updateFrequencyPerSecond": 120,
-    "debug": true,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "41d0AiEM5O650W/G3mWhSE"
   },
   {
     "__type__": "cc.PrefabInfo",

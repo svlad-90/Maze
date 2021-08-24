@@ -55,7 +55,6 @@ export class LightingSource extends Component
         if(null != this._debugGraphics)
         {
             this._debugGraphics.clear();
-            this._debugGraphics.circle(this.node.worldPosition.x, this.node.worldPosition.y, this.radius * 2.5);
 
             if(0 != this._lightPolygon.length)
             {
