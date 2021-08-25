@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Graphics, UITransform, Color, systemEvent, SystemEventType, EventMouse } from 'cc';
+import { _decorator, Component, Node, Graphics, UITransform, Color, systemEvent, SystemEvent, EventMouse } from 'cc';
 import { Maze_GlobalMouseListener } from '../globalMouseListener'
 import { Maze_EasyReference } from '../easyReference'
 
@@ -24,8 +24,8 @@ export namespace Maze_CursorDebugPoint
 
         onLoad()
         {
-            systemEvent.on(SystemEventType.MOUSE_DOWN, this.onMouseDown, this);
-            systemEvent.on(SystemEventType.MOUSE_UP, this.onMouseUp, this);
+            systemEvent.on(SystemEvent.EventType.MOUSE_DOWN, this.onMouseDown, this);
+            systemEvent.on(SystemEvent.EventType.MOUSE_UP, this.onMouseUp, this);
         }
 
         private onMouseDown(event: EventMouse)

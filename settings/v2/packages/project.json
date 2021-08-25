@@ -33,5 +33,10 @@
     },
     "autoSimulation": true
   },
-  "layer": []
+  "layer": [
+    {
+      "name": "POST_PROCESSED_SCENE",
+      "value": 1
+    }
+  ]
 }

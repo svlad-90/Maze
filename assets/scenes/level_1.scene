@@ -23,7 +23,7 @@
     "_prefab": null,
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 36
+      "__id__": 45
     },
     "_id": "06421a18-af26-48d2-917d-924ddbc2d861"
   },
@@ -49,30 +49,36 @@
       },
       {
         "__id__": 14
+      },
+      {
+        "__id__": 26
+      },
+      {
+        "__id__": 30
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 26
-      },
-      {
-        "__id__": 28
-      },
-      {
-        "__id__": 30
-      },
-      {
-        "__id__": 32
-      },
-      {
-        "__id__": 33
-      },
-      {
-        "__id__": 34
-      },
-      {
         "__id__": 35
+      },
+      {
+        "__id__": 37
+      },
+      {
+        "__id__": 39
+      },
+      {
+        "__id__": 41
+      },
+      {
+        "__id__": 42
+      },
+      {
+        "__id__": 43
+      },
+      {
+        "__id__": 44
       }
     ],
     "_prefab": null,
@@ -124,8 +130,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -480,
-      "y": -320,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -183,8 +189,8 @@
     "_sharedGraphics": {
       "__id__": 6
     },
-    "_width": 100,
-    "_height": 100,
+    "_width": 50,
+    "_height": 50,
     "_mapNodeSize": 300,
     "_floorPrefab": {
       "__uuid__": "de779049-9428-45bf-86c9-01b80763f63a",
@@ -257,8 +263,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 200,
-      "y": 200,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -306,7 +312,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Camera",
+    "_name": "MainCamera",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -414,7 +420,10 @@
     "_iso": 0,
     "_screenScale": 1,
     "_visibility": 1107296256,
-    "_targetTexture": null,
+    "_targetTexture": {
+      "__uuid__": "8b64dae7-1094-45ae-8c97-4bf572d7d83c",
+      "__expectedType__": "cc.RenderTexture"
+    },
     "_id": "63gzdN2HlPp6yJ2UNj2Phg"
   },
   {
@@ -903,7 +912,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -2286.013,
+      "x": 0,
       "y": 0,
       "z": 0
     },
@@ -968,11 +977,243 @@
     "map": {
       "__id__": 5
     },
-    "maxMonsterNumber": 50,
+    "maxMonsterNumber": 30,
     "_sharedGraphics": {
       "__id__": 6
     },
     "_id": "ecEMCWE29BK7An0ZWXBke6"
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "FinalCamera",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 27
+      },
+      {
+        "__id__": 28
+      }
+    ],
+    "_prefab": null,
+    "_lpos": {
+      "__type__": "cc.Vec3",
+      "x": 2000,
+      "y": 2000,
+      "z": 417
+    },
+    "_lrot": {
+      "__type__": "cc.Quat",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "w": 1
+    },
+    "_lscale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_layer": 33554432,
+    "_euler": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_id": "7bCCXNQFhKvb+MEM1vk5FA"
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 26
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 100,
+      "height": 100
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": "94GhWa+VBHw46GYP/QlovB"
+  },
+  {
+    "__type__": "cc.Camera",
+    "_name": "Camera<CameraComponent>",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 26
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 29
+    },
+    "_projection": 1,
+    "_priority": 0,
+    "_fov": 75,
+    "_fovAxis": 0,
+    "_orthoHeight": 320,
+    "_near": 416,
+    "_far": 417,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 51,
+      "g": 76,
+      "b": 120,
+      "a": 255
+    },
+    "_depth": 1,
+    "_stencil": 0,
+    "_clearFlags": 7,
+    "_rect": {
+      "__type__": "cc.Rect",
+      "x": 0,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    "_aperture": 19,
+    "_shutter": 7,
+    "_iso": 0,
+    "_screenScale": 1,
+    "_visibility": 1,
+    "_targetTexture": null,
+    "_id": "dcHyl/t/1FEKahGEU8Spf0"
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "dbCiGR9T1E0oZwxclTRFEj"
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "FinalScene",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 31
+      },
+      {
+        "__id__": 33
+      }
+    ],
+    "_prefab": null,
+    "_lpos": {
+      "__type__": "cc.Vec3",
+      "x": 2000,
+      "y": 2000,
+      "z": 0
+    },
+    "_lrot": {
+      "__type__": "cc.Quat",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "w": 1
+    },
+    "_lscale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_layer": 1,
+    "_euler": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_id": "32sHqA4f5AS67YcQdR5x0w"
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 30
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 32
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 960,
+      "height": 640
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": "15H7nSYxFFCI1OUmEWo2pO"
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "f7NISe7HdAD68SLfhnddy8"
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 30
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 34
+    },
+    "_visFlags": 0,
+    "_customMaterial": null,
+    "_srcBlendFactor": 2,
+    "_dstBlendFactor": 4,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_spriteFrame": {
+      "__uuid__": "8b64dae7-1094-45ae-8c97-4bf572d7d83c@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "_type": 0,
+    "_fillType": 0,
+    "_sizeMode": 1,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_useGrayscale": false,
+    "_atlas": null,
+    "_id": "37MZKXeTVBNqv77zWurx68"
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "e71ctEmpxFC4KlSYRZNz/a"
   },
   {
     "__type__": "cc.UITransform",
@@ -983,7 +1224,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 27
+      "__id__": 36
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -1010,10 +1251,10 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 29
+      "__id__": 38
     },
     "_cameraComponent": {
-      "__id__": 11
+      "__id__": 28
     },
     "_alignCanvasWithScreen": false,
     "_id": "afwIP7hlhL9at/DATifiA8"
@@ -1031,7 +1272,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 31
+      "__id__": 40
     },
     "_alignFlags": 45,
     "_target": null,
@@ -1135,16 +1376,16 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 37
+      "__id__": 46
     },
     "shadows": {
-      "__id__": 38
+      "__id__": 47
     },
     "_skybox": {
-      "__id__": 39
+      "__id__": 48
     },
     "fog": {
-      "__id__": 40
+      "__id__": 49
     }
   },
   {
@@ -1168,7 +1409,7 @@
   {
     "__type__": "cc.ShadowsInfo",
     "_type": 0,
-    "_enabled": true,
+    "_enabled": false,
     "_normal": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -1186,20 +1427,17 @@
     "_autoAdapt": true,
     "_pcf": 0,
     "_bias": 0.00001,
-    "_packing": false,
-    "_linear": true,
-    "_selfShadow": false,
     "_normalBias": 0,
     "_near": 1,
     "_far": 30,
-    "_aspect": 1,
     "_orthoSize": 5,
     "_maxReceived": 4,
     "_size": {
       "__type__": "cc.Vec2",
       "x": 512,
       "y": 512
-    }
+    },
+    "_saturation": 1
   },
   {
     "__type__": "cc.SkyboxInfo",

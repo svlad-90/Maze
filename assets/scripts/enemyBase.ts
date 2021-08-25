@@ -792,6 +792,10 @@ export namespace Maze_EnemyBase
                     this.node.setRotationFromEuler( 0, 0, angleDeg );
                     this._currentAngle = angleDeg;
                 }
+                else // work-around for native builds
+                {
+                    this.node.setPosition(this.node.position);
+                }
             }
         }
 

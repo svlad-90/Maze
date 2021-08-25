@@ -1,4 +1,3 @@
-
 import { _decorator, Canvas, Camera, Node, Scene, Director, UITransform } from 'cc';
 
 export namespace Maze_EasyReference
@@ -48,7 +47,12 @@ export namespace Maze_EasyReference
 
                     if(null != this._canvas)
                     {
-                        this._camera = this._canvas.cameraComponent;
+                        var cameraNode = this._canvas.node.getChildByName("MainCamera");
+
+                        if(null != cameraNode)
+                        {
+                            this._camera = cameraNode.getComponent(Camera);
+                        }
                     }
                 }
             }

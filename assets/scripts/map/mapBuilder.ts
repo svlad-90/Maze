@@ -916,7 +916,7 @@ export namespace Maze_MapBuilder
             }
             else
             {
-                throw("Error! Wrong input parameters!");
+                throw("[findPath] Error! Wrong input parameters!");
             }
 
             return result;
@@ -1791,7 +1791,7 @@ export namespace Maze_MapBuilder
             }
             else
             {
-                throw("Error! Wrong input parameters!");
+                throw("[getReachableCells] Error! Wrong input parameters!");
             }
 
             for(var cameFromItem of came_from)
@@ -1820,6 +1820,8 @@ export namespace Maze_MapBuilder
         {
             return this._sharedGraphics;
         }
+
+        public initialized:boolean = false;
 
         @property
         _width:number = 10;
@@ -1908,7 +1910,13 @@ export namespace Maze_MapBuilder
             if(null != this._floorPrefab && null != this._wallPrefab && null != this._sharedGraphics)
             {
                 this.node.removeAllChildren();
-                this._map = new LevelMap( this.node, this._sharedGraphics, this._width, this._height, this._mapNodeSize, this._floorPrefab, this._wallPrefab, this.Debug );
+                this._map = new LevelMap( this.node, this._sharedGraphics, this._width, this._height, 
+                                          this._mapNodeSize, this._floorPrefab, this._wallPrefab, this.Debug );
+                this.initialized = true;
+            }
+            else
+            {
+                throw("Error! Not able to create map!");
             }
         }
 
@@ -1930,7 +1938,7 @@ export namespace Maze_MapBuilder
                 return this._map.filterTiles(innerRange, outterRange, walkable);
             }
 
-            throw("Error! this._map == null!");
+            throw("[filterTiles]: Error! this._map == null!");
         }
 
         filterTiles2( range:math.Rect, walkable:boolean = true ) : Vec2[]
@@ -1940,7 +1948,7 @@ export namespace Maze_MapBuilder
                 return this._map.filterTiles2(range, walkable);
             }
 
-            throw("Error! this._map == null!");
+            throw("[filterTiles2]: Error! this._map == null!");
         }
 
         findPath(start:Vec2, finish:Vec2) : Vec2[]
@@ -1964,7 +1972,7 @@ export namespace Maze_MapBuilder
                 }
                 else
                 {
-                    throw("Error! this._map == null!");
+                    throw("[findPath]: Error! this._map == null!");
                 }
             }
             catch
@@ -1994,7 +2002,7 @@ export namespace Maze_MapBuilder
                 return result;
             }
 
-            throw("Error! this._map == null!");
+            throw("[getReachableCells]: Error! this._map == null!");
         }
 
         raycast(from:Vec2,to:Vec2):[boolean,[number,number]]
@@ -2016,7 +2024,7 @@ export namespace Maze_MapBuilder
                 return this._map.pointToTile(point, out);
             }
 
-            throw("Error! this._map == null!");
+            throw("[pointToTile]: Error! this._map == null!");
         }
 
         tileToPoint(tile:Vec2, out:Vec2|null = null)
@@ -2026,7 +2034,7 @@ export namespace Maze_MapBuilder
                 return this._map.tileToPoint(tile, out);
             }
 
-            throw("Error! this._map == null!");
+            throw("[tileToPoint]: Error! this._map == null!");
         }
 
         formVisiblePolygon(point:Vec2, radius:number, debugGraphics:Maze_DebugGraphics.DebugGraphics|null = null):[number,number][]
@@ -2036,7 +2044,7 @@ export namespace Maze_MapBuilder
                 return this._map.formVisiblePolygon(point, radius, debugGraphics);
             }
 
-            throw("Error! this._map == null!");
+            throw("[formVisiblePolygon]: Error! this._map == null!");
         }
 
         normalizeRect(rect:Rect):Rect
@@ -2046,7 +2054,7 @@ export namespace Maze_MapBuilder
                 return this._map.normalizeRect(rect);
             }
 
-            throw("Error! this._map == null!");
+            throw("[normalizeRect]: Error! this._map == null!");
         }
 
         update()
