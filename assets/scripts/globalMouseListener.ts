@@ -1,5 +1,5 @@
 
-import { _decorator, Component, systemEvent, SystemEventType, Vec3, EventMouse } from 'cc';
+import { _decorator, Component, systemEvent, SystemEvent, Vec3, EventMouse } from 'cc';
 const { ccclass, property } = _decorator;
 
 export namespace Maze_GlobalMouseListener
@@ -15,7 +15,7 @@ export namespace Maze_GlobalMouseListener
 
         start () 
         {
-            systemEvent.on(SystemEventType.MOUSE_MOVE, this.onMouseMove, this);
+            systemEvent.on(SystemEvent.EventType.MOUSE_MOVE, this.onMouseMove, this);
         }
 
         private onMouseMove(event: EventMouse)

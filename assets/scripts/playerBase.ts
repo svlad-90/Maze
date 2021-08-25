@@ -1,5 +1,5 @@
-import { _decorator, Component, Vec3, macro, EventKeyboard, SystemEventType, systemEvent, 
-    EventMouse, sp, Director, Camera, Canvas, Scene, Rect, randomRangeInt, Vec2, Collider2D, Contact2DType, IPhysics2DContact, RigidBody2D } from 'cc';
+import { _decorator, Component, Vec3, macro, EventKeyboard, SystemEvent, systemEvent, 
+    EventMouse, sp, Director, Camera, Canvas, Scene, Rect, randomRangeInt, Vec2, Collider2D, Contact2DType, IPhysics2DContact, RigidBody2D, KeyCode } from 'cc';
 import { Maze_GlobalMouseListener } from './globalMouseListener'
 import { Maze_WeaponCursor } from './weaponCursor';
 import { Maze_MapBuilder } from './map/mapBuilder'
@@ -83,10 +83,10 @@ export namespace Maze_PlayerBase
 
             this.node.addComponent(Maze_GlobalMouseListener.GlobalMouseListener);
 
-            systemEvent.on(SystemEventType.KEY_DOWN, this.onKeyDown, this);
-            systemEvent.on(SystemEventType.KEY_UP, this.onKeyUp, this);
-            systemEvent.on(SystemEventType.MOUSE_DOWN, this.onMouseDown, this);
-            systemEvent.on(SystemEventType.MOUSE_UP, this.onMouseUp, this);
+            systemEvent.on(SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+            systemEvent.on(SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
+            systemEvent.on(SystemEvent.EventType.MOUSE_DOWN, this.onMouseDown, this);
+            systemEvent.on(SystemEvent.EventType.MOUSE_UP, this.onMouseUp, this);
 
             var spineComp = this.getComponent(sp.Skeleton);
                                 
@@ -163,16 +163,16 @@ export namespace Maze_PlayerBase
 
             switch(event.keyCode)
             {
-                case macro.KEY.a:
-                case macro.KEY.left:
+                case KeyCode.KEY_A:
+                case KeyCode.ARROW_LEFT:
                     if(!this.moveDirections.has(eMoveDirection.LEFT))
                     {
                         applyLogic = true;
                         identifiedDirection = eMoveDirection.LEFT;
                     }
                     break;
-                case macro.KEY.d:
-                case macro.KEY.right:
+                case KeyCode.KEY_D:
+                case KeyCode.ARROW_RIGHT:
                     if(!this.moveDirections.has(eMoveDirection.RIGHT))
                     {
                         applyLogic = true;
@@ -180,16 +180,16 @@ export namespace Maze_PlayerBase
                     }
                     break;
 
-                case macro.KEY.w:
-                case macro.KEY.up:
+                case KeyCode.KEY_W:
+                case KeyCode.ARROW_UP:
                     if(!this.moveDirections.has(eMoveDirection.UP))
                     {
                         applyLogic = true;
                         identifiedDirection = eMoveDirection.UP;
                     }
                     break;
-                case macro.KEY.s:
-                case macro.KEY.down:
+                case KeyCode.KEY_S:
+                case KeyCode.ARROW_DOWN:
                     if(!this.moveDirections.has(eMoveDirection.DOWN))
                     {
                         applyLogic = true;
@@ -220,20 +220,20 @@ export namespace Maze_PlayerBase
         {
             switch(event.keyCode) 
             {
-                case macro.KEY.a:
-                case macro.KEY.left:
+                case KeyCode.KEY_A:
+                case KeyCode.ARROW_LEFT:
                     this.moveDirections.delete(eMoveDirection.LEFT);
                     break;
-                case macro.KEY.d:
-                case macro.KEY.right:
+                case KeyCode.KEY_D:
+                case KeyCode.ARROW_RIGHT:
                     this.moveDirections.delete(eMoveDirection.RIGHT);
                     break;
-                case macro.KEY.w:
-                case macro.KEY.up:
+                case KeyCode.KEY_W:
+                case KeyCode.ARROW_UP:
                     this.moveDirections.delete(eMoveDirection.UP);
                     break;
-                case macro.KEY.s:
-                case macro.KEY.down:
+                case KeyCode.KEY_S:
+                case KeyCode.ARROW_DOWN:
                     this.moveDirections.delete(eMoveDirection.DOWN);
                     break;
             }
