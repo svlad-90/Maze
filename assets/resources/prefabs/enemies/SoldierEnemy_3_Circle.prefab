@@ -42,8 +42,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -82,
-      "y": 282,
+      "x": 1374,
+      "y": 1900,
       "z": 0
     },
     "_lrot": {
@@ -217,7 +217,7 @@
       "__uuid__": "2d3ec558-f894-4ed3-8a42-4d578b27fa70",
       "__expectedType__": "cc.Prefab"
     },
-    "fireRate": 100,
+    "fireRate": 0.5,
     "bulletTimeAlive": 2,
     "bulletSpeed": 5,
     "damage": 10,

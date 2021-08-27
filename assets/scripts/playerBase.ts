@@ -4,6 +4,7 @@ import { Maze_GlobalMouseListener } from './globalMouseListener'
 import { Maze_WeaponCursor } from './weaponCursor';
 import { Maze_MapBuilder } from './map/mapBuilder'
 import { Maze_BulletBase } from './bulletBase';
+import { Maze_LightingSource } from './lighting/lightingSource';
 
 const { property } = _decorator;
 
@@ -57,12 +58,21 @@ export namespace Maze_PlayerBase
             return this._walkForce;
         }
 
+        private _lightingSource:Maze_LightingSource.LightingSource|null = null;
+
         public onLoad ()
         {
         }
 
         public start() 
         {
+            this._lightingSource = this.node.getComponent(Maze_LightingSource.LightingSource);
+
+            if(null != this._lightingSource)
+            {
+                this._lightingSource.register();
+            }
+
             if(null != this.map)
             {
                 var walkableTiles = this.map.filterTiles2( new Rect( 0, 0, this.map.Width, this.map.Height ) );
@@ -93,6 +103,14 @@ export namespace Maze_PlayerBase
             if(spineComp != null)
             {
                 spineComp.setAnimation(0, "idle", true);
+            }
+        }
+
+        onDestroy()
+        {
+            if(null != this._lightingSource)
+            {
+                this._lightingSource.unregister();
             }
         }
 

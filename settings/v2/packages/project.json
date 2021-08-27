@@ -37,6 +37,14 @@
     {
       "name": "POST_PROCESSED_SCENE",
       "value": 1
+    },
+    {
+      "name": "SHADOW_MAP",
+      "value": 2
+    },
+    {
+      "name": "WALLS",
+      "value": 4
     }
   ]
 }

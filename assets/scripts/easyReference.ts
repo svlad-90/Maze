@@ -1,4 +1,5 @@
-import { _decorator, Canvas, Camera, Node, Scene, Director, UITransform } from 'cc';
+import { _decorator, Canvas, Camera, Node, Scene, Director, UITransform, Vec2, Vec3, Rect } from 'cc';
+import { Maze_Common } from './common';
 
 export namespace Maze_EasyReference
 {
@@ -16,6 +17,12 @@ export namespace Maze_EasyReference
         public get camera() : Camera|null
         {
             return this._camera;
+        }
+
+        private _finalCamera:Camera|null = null;
+        public get finalCamera() : Camera|null
+        {
+            return this._finalCamera;
         }
         
         private _UITransform:UITransform|null = null;
@@ -53,11 +60,30 @@ export namespace Maze_EasyReference
                         {
                             this._camera = cameraNode.getComponent(Camera);
                         }
+
+                        var finalCameraNode = this._canvas.node.getChildByName("FinalCamera");
+
+                        if(null != finalCameraNode)
+                        {
+                            this._finalCamera = finalCameraNode.getComponent(Camera);
+                        }
                     }
                 }
             }
 
             this._UITransform = this._node.getComponent(UITransform);
+        }
+
+        getScreenWorldCoordRect():Rect
+        {
+            if(null != this.camera && null != this.canvasUITransform)
+            {
+                var bottomLeftPoint = Maze_Common.toVec2(this.camera.screenToWorld(new Vec3(0, 0, 0)));
+                var topRightPoint = Maze_Common.toVec2(this.camera.screenToWorld(new Vec3(this.canvasUITransform.contentSize.x, this.canvasUITransform.contentSize.y, 0)));
+                return new Rect(bottomLeftPoint.x, bottomLeftPoint.y, topRightPoint.x - bottomLeftPoint.x, topRightPoint.y - bottomLeftPoint.y);
+            }
+
+            throw("[screenRectWorldCoord] Error! Some of the")
         }
     }
 }
