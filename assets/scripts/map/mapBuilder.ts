@@ -108,19 +108,32 @@ export namespace Maze_MapBuilder
             return this._isWalkable;
         }
 
-        private _representationNode:Node|null = null;
-        public set representationNode(val:Node|null)
+        private _floorNode:Node|null = null;
+        public set floorNode(val:Node|null)
         {
-            this._representationNode = val;
-            if(null != this._representationNode)
+            this._floorNode = val;
+            if(null != this._floorNode)
             {
-                this._graphicsWall = this._representationNode.getComponent(Maze_GraphicsWall.GraphicsWall);
-                this._sprite = this._representationNode.getComponent(Sprite);
+                this._sprite = this._floorNode.getComponent(Sprite);
             }
         }
-        public get representationNode():Node|null
+        public get floorNode():Node|null
         {
-            return this._representationNode;
+            return this._floorNode;
+        }
+
+        private _wallNode:Node|null = null;
+        public set wallNode(val:Node|null)
+        {
+            this._wallNode = val;
+            if(null != this._wallNode)
+            {
+                this._graphicsWall = this._wallNode.getComponent(Maze_GraphicsWall.GraphicsWall);
+            }
+        }
+        public get wallNode():Node|null
+        {
+            return this._wallNode;
         }
 
         private _graphicsWall:Maze_GraphicsWall.GraphicsWall|null = null;
@@ -279,7 +292,7 @@ export namespace Maze_MapBuilder
         private _mapNodeSize:number;
         private _floorPrefab:Prefab;
         private _wallPrefab:Prefab;
-        private _sharedGraphics:Graphics;
+        private _graphics:Maze_DebugGraphics.DebugGraphics|null = null;
         private _circleRays:Vec2[] = [];
         private _easyReference:Maze_EasyReference.EasyReference|null = null;
         private _nodePoolMap:std.TreeMap<String, NodePool> = new std.TreeMap<String, NodePool>();
@@ -460,7 +473,6 @@ export namespace Maze_MapBuilder
         }
 
         constructor( parentNode:Node, 
-            sharedGraphics:Graphics, 
             width:number, 
             height:number, 
             mapNodeSize:number, 
@@ -477,10 +489,7 @@ export namespace Maze_MapBuilder
                 this._circleRays.push(circleVector);
             }
 
-            if(null != sharedGraphics)
-            {
-                sharedGraphics.clear();
-            }
+            this._graphics = new Maze_DebugGraphics.DebugGraphics(parentNode, 4);
 
             this._parentNode = parentNode;
             this._width = width;
@@ -488,7 +497,6 @@ export namespace Maze_MapBuilder
             this._mapNodeSize = mapNodeSize;
             this._floorPrefab = floorPrefab;
             this._wallPrefab = wallPrefab;
-            this._sharedGraphics = sharedGraphics;
 
             // create all nodes
             for(var row:number = 0; row < height; ++row)
@@ -542,8 +550,8 @@ export namespace Maze_MapBuilder
             if(null != this._defaultGraphicsWall)
             {
                 this._defaultGraphicsWall.Dimensions = new Vec2(this._mapNodeSize, this._mapNodeSize);
-                this._defaultGraphicsWall.SharedGraphics = this._sharedGraphics;
                 this._defaultGraphicsWall.ExcludeFromCenterFactor = 1;
+                this._defaultGraphicsWall.SharedGraphics = this._graphics;
                 this._defaultGraphicsWall.NumberOfVertices = 4;
             }
             else
@@ -587,93 +595,108 @@ export namespace Maze_MapBuilder
             }
         }
 
-        protected getNodePool(mapNode:MapNode):NodePool|null
+        protected getNodePool(poolName:string):NodePool|null
         {
             var result:NodePool|null = null;
 
-            if(null != mapNode)
+            if(poolName.length > 0)
             {
-                var poolName = "";
-
-                if(true == mapNode.isWalkable)
+                if(this._nodePoolMap.has(poolName))
                 {
-                    if(null != this._floorPrefab)
-                    {
-                        poolName = this._floorPrefab.data.name;
-                    }
+                    result = this._nodePoolMap.get(poolName);
                 }
                 else
                 {
-                    if(null != this._wallPrefab)
-                    {
-                        poolName = this._wallPrefab.data.name;
-                    }
-                }
-
-                if(poolName.length > 0)
-                {
-                    if(this._nodePoolMap.has(poolName))
-                    {
-                        result = this._nodePoolMap.get(poolName);
-                    }
-                    else
-                    {
-                        result = new NodePool();
-                        this._nodePoolMap.set(poolName,result);
-                    }
+                    result = new NodePool();
+                    this._nodePoolMap.set(poolName,result);
                 }
             }
 
             return result;
         }
 
-        protected assignRepresentationNode(mapNode:MapNode)
+        protected assignRepresentationNodes(mapNode:MapNode)
         {
-            var representationNodeInstance:Node|null = null;
-
-            if(null != mapNode && null == mapNode.representationNode)
+            if(null != mapNode)
             {
-                var nodePool = this.getNodePool(mapNode);
-
-                if(null != nodePool)
+                if(null == mapNode.floorNode)
                 {
-                    if(0 != nodePool.size())
-                    {
-                        representationNodeInstance = nodePool.get();
-                    }
-                    else
-                    {
-                        if(mapNode.isWalkable)
-                        {
-                            if(null != this._floorPrefab)
-                            {
-                                representationNodeInstance = instantiate(this._floorPrefab);
+                    var floorNodeInstance:Node|null = null;
 
-                                var uiTransform = representationNodeInstance.getComponent(UITransform);
+                    if(null != this._floorPrefab)
+                    {
+                        var nodePool = this.getNodePool(this._floorPrefab.data.name);
+
+                        if(null != nodePool)
+                        {
+                            if(0 != nodePool.size())
+                            {
+                                floorNodeInstance = nodePool.get();
+                            }
+                            else
+                            {
+                                floorNodeInstance = instantiate(this._floorPrefab);
+
+                                var uiTransform = floorNodeInstance.getComponent(UITransform);
                         
                                 if(uiTransform != null)
                                 {
                                     uiTransform.setContentSize( this._mapNodeSize, this._mapNodeSize );
                                 }
                             }
+                            
+                            if(null != floorNodeInstance)
+                            {
+                                mapNode.floorNode = floorNodeInstance;
+            
+                                this._parentNode.insertChild(mapNode.floorNode,0);
+                                mapNode.floorNode.parent = this._parentNode;
+                    
+                                var leftBottomPoint = this.getLeftBottompWorldPosition();
+            
+                                var x = leftBottomPoint.x + ( mapNode.x * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
+                                var y = leftBottomPoint.y + ( ( this._height - mapNode.y ) * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
+                    
+                                mapNode.floorNode.setWorldPosition( new Vec3( x, y, 0  ) );
+                            }
                             else
                             {
-                                throw("Error! this._floorPrefab == null");
+                                throw("Error! floorNodeInstance == null!");
                             }
                         }
-                        else
-                        {
-                            if(null != this._wallPrefab)
-                            {
-                                representationNodeInstance = instantiate(this._wallPrefab);
+                    }
+                    else
+                    {
+                        throw("Error! this._floorPrefab == null");
+                    }
+                }
 
-                                var graphicsWall = representationNodeInstance.getComponent(Maze_GraphicsWall.GraphicsWall);
-                        
+                if(false == mapNode.isWalkable && null == mapNode.wallNode)
+                {
+                    var wallNodeInstance:Node|null = null;
+
+                    if(null != this._wallPrefab)
+                    {
+                        var nodePool = this.getNodePool(this._wallPrefab.data.name);
+
+                        if(null != nodePool)
+                        {
+                            if(0 != nodePool.size())
+                            {
+                                wallNodeInstance = nodePool.get();
+                            }
+                            else
+                            {
+                                
+                                wallNodeInstance = instantiate(this._wallPrefab);
+
+                                var graphicsWall = wallNodeInstance.getComponent(Maze_GraphicsWall.GraphicsWall);
+                            
                                 if(graphicsWall != null)
                                 {
                                     graphicsWall.Dimensions = new Vec2(this._mapNodeSize, this._mapNodeSize);
-                                    graphicsWall.SharedGraphics = this._sharedGraphics;
                                     graphicsWall.ExcludeFromCenterFactor = 0.9;
+                                    graphicsWall.SharedGraphics = this._graphics;
                                     graphicsWall.NumberOfVertices = 25;
                                 }
                                 else
@@ -681,45 +704,59 @@ export namespace Maze_MapBuilder
                                     throw("Error! Wall prefab does not contain GraphicsWall component!");
                                 }
                             }
+                            
+                            if(null != wallNodeInstance)
+                            {
+                                mapNode.wallNode = wallNodeInstance;
+            
+                                this._parentNode.insertChild(mapNode.wallNode,0);
+                                mapNode.wallNode.parent = this._parentNode;
+                    
+                                var leftBottomPoint = this.getLeftBottompWorldPosition();
+            
+                                var x = leftBottomPoint.x + ( mapNode.x * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
+                                var y = leftBottomPoint.y + ( ( this._height - mapNode.y ) * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
+                    
+                                mapNode.wallNode.setWorldPosition( new Vec3( x, y, 0  ) );
+                            }
                             else
                             {
-                                throw("Error! this._wallPrefab == null");
+                                throw("Error! wallNodeInstance == null!");
                             }
                         }
-                    }     
-                }
-                
-                if(null != representationNodeInstance)
-                {
-                    mapNode.representationNode = representationNodeInstance;
-
-                    this._parentNode.insertChild(mapNode.representationNode,0);
-                    mapNode.representationNode.parent = this._parentNode;
-        
-                    var leftBottomPoint = this.getLeftBottompWorldPosition();
-
-                    var x = leftBottomPoint.x + ( mapNode.x * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
-                    var y = leftBottomPoint.y + ( ( this._height - mapNode.y ) * this._mapNodeSize ) + ( this._mapNodeSize / 2 );
-        
-                    mapNode.representationNode.setWorldPosition( new Vec3( x, y, 0  ) );
-                }
-                else
-                {
-                    throw("Error! representationNodeInstance == null!");
+                    }
+                    else
+                    {
+                        throw("Error! this._wallPrefab == null");
+                    }
                 }
             }
         }
 
-        protected releaseRepresentationNode(mapNode:MapNode)
+        protected releaseRepresentationNodes(mapNode:MapNode)
         {
-            if(null != mapNode && null != mapNode.representationNode)
+            if(null != mapNode)
             {
-                var nodePool = this.getNodePool(mapNode);
-
-                if(null != nodePool)
+                if(null != mapNode.wallNode)
                 {
-                    nodePool.put(mapNode.representationNode);
-                    mapNode.representationNode = null;
+                    var nodePool = this.getNodePool(this._wallPrefab.data.name);
+
+                    if(null != nodePool)
+                    {
+                        nodePool.put(mapNode.wallNode);
+                        mapNode.wallNode = null;
+                    }
+                }
+
+                if(null != mapNode.floorNode)
+                {
+                    nodePool = this.getNodePool(this._floorPrefab.data.name);
+
+                    if(null != nodePool)
+                    {
+                        nodePool.put(mapNode.floorNode);
+                        mapNode.floorNode = null;
+                    }
                 }
             }
         }
@@ -735,6 +772,8 @@ export namespace Maze_MapBuilder
                 var topLeftPoint = Maze_Common.toVec2(this._easyReference.camera.screenToWorld(new Vec3(0, this._easyReference.canvasUITransform.contentSize.y, 0)));
                 var bottomRightPoint = Maze_Common.toVec2(this._easyReference.camera.screenToWorld(new Vec3(this._easyReference.canvasUITransform.contentSize.x, 0, 0)));
                 
+                var tmp = this._easyReference.camera.worldToScreen(new Vec3(100,100,0));
+
                 var topLeftTileCoord = this.pointToTile(topLeftPoint);
                 var bottomRightTileCoord = this.pointToTile(bottomRightPoint);
 
@@ -764,11 +803,11 @@ export namespace Maze_MapBuilder
                                     shouldRedrawWalls = true;
                                 }
 
-                                this.releaseRepresentationNode(mapNode);
+                                this.releaseRepresentationNodes(mapNode);
                             }
                             else
                             {
-                                this.assignRepresentationNode(mapNode);
+                                this.assignRepresentationNodes(mapNode);
                             }
                         }
                     }
@@ -782,7 +821,7 @@ export namespace Maze_MapBuilder
                             if((row < intersectionRect.y || row >= intersectionRect.yMax) ||
                                (column < intersectionRect.x || column >= intersectionRect.xMax))
                             {
-                                this.assignRepresentationNode(mapNode);
+                                this.assignRepresentationNodes(mapNode);
                             }
 
                             if(false == mapNode.isWalkable && true == shouldRedrawWalls)
@@ -795,9 +834,9 @@ export namespace Maze_MapBuilder
                         }
                     }
 
-                    if(true == shouldRedrawWalls && null != this._sharedGraphics)
+                    if(true == shouldRedrawWalls && null != this._graphics)
                     {
-                        this._sharedGraphics.clear();
+                        this._graphics.clear();
                     }
 
                     this.currentVisibleCellsRect = newVisibleRect;
@@ -1539,6 +1578,9 @@ export namespace Maze_MapBuilder
 
                     addCircleRays();
 
+                    // sort the result by angle
+                    sortVertices(impactingWallVertices);
+
                     // now we have a sub-set of vertices, which could impact the light source
                     // We should raycast to each of them.
 
@@ -1559,11 +1601,39 @@ export namespace Maze_MapBuilder
 
                         if(true == collisionResult[0])
                         {
-                            result.push( [collisionResult[1][0], collisionResult[1][1]] );
+                            if(0 == result.length)
+                            {
+                                result.push( [collisionResult[1][0], collisionResult[1][1]] );
+                            }
+                            else
+                            {
+                                if(false == Maze_Common.collinearVectors(collisionResult[1][0], collisionResult[1][1], result[result.length - 1][0], result[result.length - 1][1]))
+                                {
+                                    result.push( [collisionResult[1][0], collisionResult[1][1]] );
+                                }
+                                else
+                                {
+                                    result[result.length - 1] = [collisionResult[1][0], collisionResult[1][1]];
+                                }
+                            }
                         }
                         else
                         {
-                            result.push( [collisionResultTmpInputVec.x, collisionResultTmpInputVec.y] );
+                            if(0 == result.length)
+                            {
+                                result.push( [collisionResultTmpInputVec.x, collisionResultTmpInputVec.y] );
+                            }
+                            else
+                            {
+                                if(false == Maze_Common.collinearVectors(collisionResultTmpInputVec.x, collisionResultTmpInputVec.y, result[result.length - 1][0], result[result.length - 1][1]))
+                                {
+                                    result.push( [collisionResultTmpInputVec.x, collisionResultTmpInputVec.y] );
+                                }
+                                else
+                                {
+                                    result[result.length - 1] = [collisionResultTmpInputVec.x, collisionResultTmpInputVec.y];
+                                }
+                            }
                         }
                     }
                 }
@@ -1600,7 +1670,6 @@ export namespace Maze_MapBuilder
                 }
             }
 
-            // sort the result by angle
             sortVertices(result);
 
             return result;
@@ -1808,19 +1877,6 @@ export namespace Maze_MapBuilder
     {
         static instance:MapBuilder;
 
-        @property (Graphics)
-        _sharedGraphics:Graphics|null = null;
-
-        @property (Graphics)
-        set SharedGraphics(val:Graphics|null)
-        {
-            this._sharedGraphics = val;
-        }
-        get SharedGraphics():Graphics|null
-        {
-            return this._sharedGraphics;
-        }
-
         public initialized:boolean = false;
 
         @property
@@ -1902,15 +1958,22 @@ export namespace Maze_MapBuilder
         }
 
         private _map:LevelMap|null = null;
+        private _mapNode:Node = new Node();
 
         createMap()
         {
             this.node.setWorldPosition(new Vec3(0,0,0));
 
-            if(null != this._floorPrefab && null != this._wallPrefab && null != this._sharedGraphics)
+            if(null != this._floorPrefab && null != this._wallPrefab)
             {
                 this.node.removeAllChildren();
-                this._map = new LevelMap( this.node, this._sharedGraphics, this._width, this._height, 
+
+                this._mapNode.parent = this.node;
+                this.node.addChild(this._mapNode);
+
+                this._mapNode.layer = 4;
+
+                this._map = new LevelMap( this._mapNode, this._width, this._height, 
                                           this._mapNodeSize, this._floorPrefab, this._wallPrefab, this.Debug );
                 this.initialized = true;
             }

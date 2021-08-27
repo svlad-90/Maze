@@ -11,6 +11,7 @@ import { Maze_MapBuilder } from './map/mapBuilder'
 import { Maze_GraphicsWall } from './wall/graphicsWall';
 import { Maze_Observer } from './observer/observer';
 import { Maze_DebugGraphics } from './common/debugGraphics';
+import { Maze_LightingSource } from './lighting/lightingSource';
 const { ccclass, property } = _decorator;
 
 export namespace Maze_EnemyBase
@@ -82,6 +83,7 @@ export namespace Maze_EnemyBase
         private _shouldNotifyDeath:boolean = false;
         private _shouldNotifyDestroy:boolean = false;
         private _fadeInTween:Tween<Color>|null = null;
+        private _lightingSource:Maze_LightingSource.LightingSource|null = null;
 
         @property ( Maze_PlayerCursor.PlayerCursor )
         playerInFocus:Maze_PlayerCursor.PlayerCursor = new Maze_PlayerCursor.PlayerCursor();
@@ -171,7 +173,7 @@ export namespace Maze_EnemyBase
                 {
                     this._rigidBody.sleep();
                 }
-                
+
                 this.schedule(()=>
                 {
                     this.determineState();
@@ -196,6 +198,11 @@ export namespace Maze_EnemyBase
                 if(spineComp != null)
                 {
                     spineComp.setAnimation(0, "idle", true);
+                }
+
+                if(null != this._lightingSource)
+                {
+                    this._lightingSource.register();
                 }
             }, 
             (context:EnemyFSMContext)=>
@@ -337,6 +344,11 @@ export namespace Maze_EnemyBase
                         }
                     });
                 }
+
+                if(null != this._lightingSource)
+                {
+                    this._lightingSource.unregister();
+                }
             }, 
             (context:EnemyFSMContext)=>
             {
@@ -464,6 +476,8 @@ export namespace Maze_EnemyBase
 
         start()
         {
+            this._lightingSource = this.node.getComponent(Maze_LightingSource.LightingSource);
+
             this._initalHealth = this.health;
             this._uiTransform = this.node.getComponent(UITransform);
 
@@ -506,6 +520,11 @@ export namespace Maze_EnemyBase
                 {
                     this._rigidBody.enabled = true;
                 }
+            }
+
+            if(null != this._lightingSource)
+            {
+                this._lightingSource.register();
             }
         }
 

@@ -153,17 +153,14 @@ export namespace Maze_Common
     }
 
     /*
-     * checkCollinearVectors - check whether 2 vectors are collinear or not.
-     * @param vec1:Vec2 - first vector to be checked
-     * @param vec2:Vec2 - second vector to be checked
-     * @return - the point within the provided dimensions with:
-     * - x = from 0 to dimensions.x
-     * - y = from 0 to dimensions.y
+     * collinearVectors - check whether 2 vectors are collinear or not.
+     * @param x1, y1 - first vector to be checked
+     * @param x2, y2 - second vector to be checked
+     * @return - true if provided vectors are collinear. False otherwise.
      */
-    export function checkCollinearVectors(vec1:Vec2, vec2:Vec2) : boolean
+    export function collinearVectors(x1:number, y1:number, x2:number, y2:number) : boolean
     {
-        var tmp:Vec2 = vec1.clone();
-        return tmp.cross(vec2) == 0;
+        return (x1 * y2 - y1 * x2) == 0;
     }
 
     /*

@@ -1,7 +1,6 @@
-import { _decorator, Component, Node, Vec2, math, Vec3, Quat, Rect } from 'cc';
+import { _decorator, Component, Node, Vec2, math, Vec3, Quat, Rect, Color } from 'cc';
 const { ccclass, property } = _decorator;
 
-import { Maze_DebugGraphics } from '../common/debugGraphics';
 import { Maze_MapBuilder } from '../map/mapBuilder';
 import { Maze_Common } from '../common';
 import { Maze_EasyReference } from '../easyReference';
@@ -27,10 +26,8 @@ export namespace Maze_LightingSource
         private _updateDelay = 0;
         private _currentUpdateDelay = 100000;
 
-        private _debugGraphics:Maze_DebugGraphics.DebugGraphics|null = null;
         private _lightPolygon:[number,number][] = [];
         private _previousPosition:Vec3 = new Vec3();
-        private _previousRotation:Quat = new Quat();
         private _easyReference:Maze_EasyReference.EasyReference|null = null;
         private _visiblePolygonUpdated:boolean = false;
 
@@ -41,7 +38,9 @@ export namespace Maze_LightingSource
 
         hasVisiblePolygonChanged():boolean
         {
-            return this._visiblePolygonUpdated;
+            var result = this._visiblePolygonUpdated;
+            this._visiblePolygonUpdated = false;
+            return result;
         }
 
         start() 
@@ -49,21 +48,30 @@ export namespace Maze_LightingSource
             this._easyReference = new Maze_EasyReference.EasyReference(this.node);
             this.map = Maze_MapBuilder.MapBuilder.instance;
             this._updateDelay = 1 / this.updateFrequencyPerSecond;
-
-            if(true == this.debug)
-            {
-                this._debugGraphics = new Maze_DebugGraphics.DebugGraphics(this.node);
-            }
-
-            // register the light
-            Maze_LightingManager.LightingManager.instance?.registerLightingSource(this);
         }
 
-    
-        onDestroy () 
+        register()
+        {
+            // register the light
+            if(null != Maze_LightingManager.LightingManager.instance)
+            {
+                this._visiblePolygonUpdated = true;
+                this._lightPolygon = [];
+
+                Maze_LightingManager.LightingManager.instance.registerLightingSource(this);
+            }
+        }
+
+        unregister() 
         {
             // unregister the light
-            Maze_LightingManager.LightingManager.instance?.unregisterLightingSource(this);        
+            if(null != Maze_LightingManager.LightingManager.instance)
+            {
+                this._visiblePolygonUpdated = true;
+                this._lightPolygon = [];
+
+                Maze_LightingManager.LightingManager.instance.unregisterLightingSource(this);
+            }        
         }
 
         formVisiblePolygon()
@@ -75,36 +83,9 @@ export namespace Maze_LightingSource
             }
         }
 
-        drawVisiblePolygon()
+        worldPosition():Vec2
         {
-            if(null != this._debugGraphics)
-            {
-                this._debugGraphics.clear();
-
-                if(0 != this._lightPolygon.length)
-                {
-                    this._debugGraphics.strokeColor = new math.Color(255,0,0);
-                    this._debugGraphics.lineWidth = 20;
-
-                    var counter:number = 0;
-                    for(var point of this._lightPolygon)
-                    {
-                        if(counter == 0)
-                        {
-                            this._debugGraphics.moveTo(point[0],point[1]);
-                        }
-                        else
-                        {
-                            this._debugGraphics.lineTo(point[0],point[1]);
-                        }
-
-                        counter = counter + 1;
-                    }
-
-                    this._debugGraphics.close();
-                    this._debugGraphics.stroke();
-                }
-            }
+            return Maze_Common.toVec2(this.node.worldPosition);
         }
 
         isVisible():boolean
@@ -137,8 +118,6 @@ export namespace Maze_LightingSource
         {
             if(true == this.isVisible())
             {
-                var shouldDrawPolygon:boolean = false;
-
                 this._currentUpdateDelay = this._currentUpdateDelay + deltaTime;
 
                 if(false == this._previousPosition.equals(this.node.position))
@@ -149,26 +128,7 @@ export namespace Maze_LightingSource
                         this.formVisiblePolygon();
                     }
 
-                    shouldDrawPolygon = true;
                     this._previousPosition = this.node.position.clone();
-                }
-                
-                if(false == this._previousRotation.equals(this.node.rotation))
-                {
-                    shouldDrawPolygon = true;
-                    this._previousRotation = this.node.rotation.clone();
-                }
-
-                if(true == shouldDrawPolygon)
-                {
-                    this.drawVisiblePolygon();
-                }
-            }
-            else
-            {
-                if(true == this.debug && null != this._debugGraphics)
-                {
-                    this._debugGraphics.clear();
                 }
             }
         }

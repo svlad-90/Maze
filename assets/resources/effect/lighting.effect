@@ -4,40 +4,100 @@ CCEffect %{
   techniques:
   - name: opaque
     passes:
-    - vert: general-vs:vert # builtin header
-      frag: unlit-fs:frag
-      properties: &props
-        mainTexture:    { value: white }
-        mainColor:      { value: [1, 1, 1, 1], editor: { type: color } }
-  - name: transparent
-    passes:
-    - vert: general-vs:vert # builtin header
-      frag: unlit-fs:frag
-      blendState:
-        targets:
-        - blend: true
-          blendSrc: src_alpha
-          blendDst: one_minus_src_alpha
-          blendSrcAlpha: src_alpha
-          blendDstAlpha: one_minus_src_alpha
-      properties: *props
+    - vert: vs:vert
+      frag: fs:frag
+      properties:
+        shadowMap: { value: black, target: shadowMap }
 }%
 
-CCProgram unlit-fs %{
+CCProgram vs %{
   precision highp float;
-  #include <output>
-  #include <cc-fog-fs>
+  #include <cc-global>
+  #if USE_LOCAL
+    #include <cc-local>
+  #endif
+  #if SAMPLE_FROM_RT
+    #include <common>
+  #endif
+  in vec3 a_position;
+  in vec2 a_texCoord;
+  in vec4 a_color;
 
-  in vec2 v_uv;
-  uniform sampler2D mainTexture;
+  out vec4 color;
+  out vec2 v_uv0;
 
-  uniform Constant {
-    vec4 mainColor;
-  };
+  vec4 vert () {
+    vec4 pos = vec4(a_position, 1);
 
-  vec4 frag () {
-    vec4 col = mainColor * texture(mainTexture, v_uv);
-    CC_APPLY_FOG(col);
-    return CCFragOutput(col);
+    #if USE_LOCAL
+      pos = cc_matWorld * pos;
+    #endif
+
+    #if USE_PIXEL_ALIGNMENT
+      pos = cc_matView * pos;
+      pos.xyz = floor(pos.xyz);
+      pos = cc_matProj * pos;
+    #else
+      pos = cc_matViewProj * pos;
+    #endif
+
+    v_uv0 = a_texCoord;
+    #if SAMPLE_FROM_RT
+      CC_HANDLE_RT_SAMPLE_FLIP(v_uv0);
+    #endif
+    color = a_color;
+
+    return pos;
   }
+}%
+
+CCProgram fs %{
+#define M_PI 3.1415926535897932384626433832795
+#define D2R  0.0174532925199432957692369076849
+
+precision highp float;
+
+in vec2 v_uv0;
+#pragma builtin(local)
+layout(set = 2, binding = 10) uniform sampler2D cc_spriteTexture;
+uniform sampler2D shadowMap;
+
+in vec4 v_color;
+
+uniform WipeShader 
+{
+  lowp float wipe;
+  lowp float start_angle;
+  lowp float rx;
+  lowp float ry;
+  lowp float rw;
+  lowp float rh;
+  lowp float tw;
+  lowp float th;
+};
+
+float get_angle(vec2 v1, vec2 v2)
+{
+  return atan(v1.x * v2.y - v1.y * v2.x, v1.x * v2.x + v1.y * v2.y);
+}
+
+vec4 frag () 
+{
+    vec4 shadowColor = texture(shadowMap, v_uv0);
+    vec4 color;
+    
+    if(shadowColor.x == 0.0 && 
+       shadowColor.y == 0.0 && 
+       shadowColor.z == 0.0 && 
+       shadowColor.w == 1.0)
+    {
+      color = shadowColor;
+    }
+    else
+    {
+      color = texture(cc_spriteTexture, v_uv0);
+    }
+
+    return color;
+}
 }%

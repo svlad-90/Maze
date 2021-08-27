@@ -2,6 +2,7 @@
 import { _decorator, Component, Node, Color, Graphics, Vec2, Vec3, PolygonCollider2D, UITransform, math, PhysicsSystem2D, Canvas, RigidBody2D, Contact2DType,
     Collider2D, IPhysics2DContact } from 'cc';
 import { Maze_Common } from '../common';
+import { Maze_DebugGraphics } from '../common/debugGraphics';
 import std from '../thirdparty/tstl/src';
 const { ccclass, property, executeInEditMode } = _decorator;
 
@@ -17,15 +18,13 @@ export namespace Maze_GraphicsWall
             this._drawn = val;
         }
 
-        @property (Graphics)
-        private _sharedGraphics:Graphics|null = null;
+        private _sharedGraphics:Maze_DebugGraphics.DebugGraphics|null = null;
 
-        @property (Graphics)
-        set SharedGraphics(val:Graphics|null)
+        set SharedGraphics(val:Maze_DebugGraphics.DebugGraphics|null)
         {
             this._sharedGraphics = val;
         }
-        get SharedGraphics():Graphics|null
+        get SharedGraphics():Maze_DebugGraphics.DebugGraphics|null
         {
             return this._sharedGraphics;
         }
@@ -145,49 +144,44 @@ export namespace Maze_GraphicsWall
             {
                 if(false == this._drawn)
                 {
-                    var painter = this.SharedGraphics.node.getComponent(Graphics);
+                    var shift:Vec3 = this.node.worldPosition;
 
-                    if(null != painter)
+                    var maxCounter:number = 0;
+
+                    maxCounter = this._vertices.length;
+
+                    this.SharedGraphics.lineWidth = 10;
+                    this.SharedGraphics.strokeColor = new Color(255,255,255);
+
+                    if(this._vertices.length > 0)
                     {
-                        var shift:Vec3 = this.node.worldPosition.clone().subtract(this.SharedGraphics.node.worldPosition);
-
-                        var maxCounter:number = 0;
-
-                        maxCounter = this._vertices.length;
-
-                        if(this._vertices.length > 0)
-                        {
-                            painter.moveTo(this._vertices[0].x + shift.x, this._vertices[0].y + shift.y);
-                        }
-
-                        for(var i:number = 0; i < maxCounter; ++i)
-                        {
-                            var currentPoint = this._vertices[i];
-                            var nextPoint:Vec2|null = null; 
-
-                            if(i < this._vertices.length-1)
-                            {
-                                nextPoint = this._vertices[i+1];
-                            }
-                            else
-                            {
-                                nextPoint = this._vertices[0];
-                            }
-
-                            painter.lineWidth = 5;
-                            painter.color = new Color(255,255,255);
-                            painter.lineTo(nextPoint.x + shift.x, nextPoint.y + shift.y);
-                        }
-
-                        painter.close();
-
-                        painter.stroke();
-
-                        painter.fillColor = new Color(0,0,0);
-                        painter.fill();
-
-                        this._drawn = true;
+                        this.SharedGraphics.moveTo(this._vertices[0].x + shift.x, this._vertices[0].y + shift.y);
                     }
+
+                    for(var i:number = 0; i < maxCounter; ++i)
+                    {
+                        var currentPoint = this._vertices[i];
+                        var nextPoint:Vec2|null = null; 
+
+                        if(i < this._vertices.length-1)
+                        {
+                            nextPoint = this._vertices[i+1];
+                        }
+                        else
+                        {
+                            nextPoint = this._vertices[0];
+                        }
+
+                        this.SharedGraphics.lineTo(nextPoint.x + shift.x, nextPoint.y + shift.y);
+                        this.SharedGraphics.stroke();
+                    }
+
+                    this.SharedGraphics.close();
+
+                    this.SharedGraphics.fillColor = new Color(30,0,0);
+                    this.SharedGraphics.fill();
+
+                    this._drawn = true;
                 }
             }
         }
