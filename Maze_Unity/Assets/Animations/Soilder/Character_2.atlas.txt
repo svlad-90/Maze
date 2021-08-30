@@ -1,0 +1,12 @@
+Character_2.png
+size:365,289
+filter:Linear,Linear
+pma:true
+Body
+bounds:226,2,137,285
+Head
+bounds:2,65,222,222
+Leg_left
+bounds:2,6,82,57
+Leg_right
+bounds:2,6,82,57

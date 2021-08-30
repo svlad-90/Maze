@@ -1,0 +1,31 @@
+[
+  {
+    "__type__": "LightingPipeline",
+    "_name": "",
+    "_objFlags": 0,
+    "_native": "",
+    "_tag": 0,
+    "_flows": [
+      {
+        "__id__": 1
+      },
+      {
+        "__id__": 2
+      }
+    ]
+  },
+  {
+    "__type__": "RenderFlow",
+    "_name": "",
+    "_priority": 0,
+    "_tag": 0,
+    "_stages": []
+  },
+  {
+    "__type__": "RenderFlow",
+    "_name": "",
+    "_priority": 0,
+    "_tag": 0,
+    "_stages": []
+  }
+]
