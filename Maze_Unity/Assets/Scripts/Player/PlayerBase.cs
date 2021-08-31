@@ -37,6 +37,8 @@ namespace Maze_PlayerBase
 
         protected Rigidbody2D mRigidBody;
 
+        protected Maze_WeaponBase.WeaponBase mWeapon;
+
         public void OnMoveUpStart()
         {
             mCurrentMoveDirection = eMoveDirection.UP;
@@ -87,12 +89,18 @@ namespace Maze_PlayerBase
 
         public void OnFireOn()
         {
-
+            if(null != mWeapon)
+            {
+                mWeapon.fireOn();
+            }
         }
 
         public void OnFireOff()
         {
-
+            if(null != mWeapon)
+            {
+                mWeapon.fireOff();
+            }
         }
 
         // Start is called before the first frame update
@@ -104,6 +112,8 @@ namespace Maze_PlayerBase
             {
                 mSkeletonAnimation.state.SetAnimation(0, "idle", true);
             }
+
+            mWeapon = GetComponent<Maze_WeaponBase.WeaponBase>();
 
             mRigidBody = GetComponent<Rigidbody2D>();
         }
