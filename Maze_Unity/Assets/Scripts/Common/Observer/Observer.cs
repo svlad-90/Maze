@@ -74,9 +74,9 @@ namespace Maze_Observer
                         this.mObservers.Remove(pendingObserverItem.mObserver);
                         break;
                 }
-
-                this.mPendingObservers.Clear();
             }
+
+            this.mPendingObservers.Clear();
         }
     }
 
@@ -85,7 +85,7 @@ namespace Maze_Observer
         public delegate void ObserverCallback(T subject);
         ObserverCallback mCallback;
 
-        void setObserverCallback(ObserverCallback callback)
+        public void setObserverCallback(ObserverCallback callback)
         {
             this.mCallback = callback;
         }

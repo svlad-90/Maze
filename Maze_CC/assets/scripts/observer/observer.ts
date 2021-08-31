@@ -74,9 +74,9 @@ export namespace Maze_Observer
                         this.observers.delete(pendingObserverItem.observer);
                         break;
                 }
-
-                this._pendingObservers.clear();
             }
+
+            this._pendingObservers.clear();
         }
     }
 
