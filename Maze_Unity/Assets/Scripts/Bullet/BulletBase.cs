@@ -29,14 +29,20 @@ namespace Maze_BulletBase
         private bool mIsDamageActive = true;
         public bool IsDamageActive { get => mIsDamageActive; }
 
-        private int mCollisionGroup = 0;
-        public int CollisionGroup
+        private int mLayer = 0;
+        public int Layer
         {
-            get => mCollisionGroup;
+            get => mLayer;
             set
             {
-                mCollisionGroup = value;
+                mLayer = value;
                 this.gameObject.layer = value;
+
+                if (null != mCircleCollider2D)
+                {
+                    mCircleCollider2D.enabled = false;
+                    mCircleCollider2D.enabled = true;
+                }
             }
         }
 
@@ -69,7 +75,7 @@ namespace Maze_BulletBase
             }
         }
 
-        void OnCollisionEnter(Collision collision)
+        void OnCollisionEnter2D(Collision2D collision)
         {
             if (null != this.gameObject)
             {

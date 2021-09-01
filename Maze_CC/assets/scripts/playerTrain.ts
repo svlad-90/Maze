@@ -101,8 +101,6 @@ export namespace Maze_PlayerTrain
                 }
             });
 
-            var resultQuat:Quat = new Quat();
-
             this.node.setRotationFromEuler( 0, 0, this.node.angle + rotationAngle );
         }
     }
