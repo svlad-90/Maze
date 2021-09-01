@@ -34,8 +34,8 @@ namespace Maze_WeaponBase
         public int Damage { get => mDamage; set => mDamage = value; }
 
         [SerializeField]
-        private int mBulletCollisionGroup = 0;
-        public int BulletCollisionGroup { get => mBulletCollisionGroup; set => mBulletCollisionGroup = value; }
+        private int mLayer = 0;
+        public int Layer { get => mLayer; set => mLayer = value; }
 
         protected Maze_EasyReference.EasyReference mEasyReference;
         private bool mFireOn = false;
@@ -65,7 +65,7 @@ namespace Maze_WeaponBase
                     if (null != bulletComponent)
                     {
                         bulletComponent.reuse();
-                        bulletComponent.CollisionGroup = mBulletCollisionGroup;
+                        bulletComponent.Layer = mLayer;
                         bulletComponent.DestroyBulletSubject.attach(mDestroyBulletObserver);
                     }
 

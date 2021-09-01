@@ -271,7 +271,6 @@ export namespace Maze_PlayerBase
         {
             var result:Vec3 = new Vec3();
             Vec3.transformQuat(result, this.eyesDirection, this.node.rotation);
-            console.log("result - ", result);
             return result;
         }
     }

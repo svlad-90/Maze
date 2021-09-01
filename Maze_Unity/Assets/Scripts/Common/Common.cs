@@ -137,10 +137,7 @@ namespace Maze_Common
         // randomRangeFloat - the same as randomRangeInt, but works for double type.
         public static float randomRangeFloat(float from, float to)
         {
-            System.Random r = new System.Random();
-            float range = to - from;
-            double rDouble = r.NextDouble() * range; //for doubles
-            return (float)(rDouble);
+            return UnityEngine.Random.Range(from, to);
         }
 
         /*
@@ -177,8 +174,10 @@ namespace Maze_Common
          */
         public static Line resizeLine(Line line, float length)
         {
+            //return { startPoint : line.startPoint.clone(), endPoint : line.endPoint.clone().subtract(line.startPoint).normalize().multiplyScalar( length ).add(line.startPoint) };
             Vector2 endPoint = clone(line.EndPoint) - line.StartPoint;
             endPoint.Normalize();
+            endPoint = (endPoint * length) + line.StartPoint;
             return new Line(line.StartPoint, endPoint);
         }
 
@@ -233,8 +232,8 @@ namespace Maze_Common
 
             float maxAngle = 360;
 
-            var minJumpAngle = maxAngle / numberOfVertices * 0.7f;
-            var maxJumpAngle = maxAngle / numberOfVertices * 1.3f;
+            var minJumpAngle = (maxAngle / numberOfVertices) * 0.7f;
+            var maxJumpAngle = (maxAngle / numberOfVertices) * 1.3f;
 
             float angle = 0;
 

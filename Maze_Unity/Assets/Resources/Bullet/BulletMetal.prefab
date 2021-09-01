@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2552035678579562537}
   - component: {fileID: 8964409602497820304}
   - component: {fileID: -6713579922969430430}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: BulletMetal
   m_TagString: Untagged
   m_Icon: {fileID: 0}

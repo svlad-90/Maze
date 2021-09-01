@@ -29,7 +29,7 @@ namespace Maze_PlayerBase
         protected HashSet<eMoveDirection> mMoveDirections = new HashSet<eMoveDirection>();
         public HashSet<eMoveDirection> MoveDirections { get => mMoveDirections; set => mMoveDirections = value; }
 
-        protected float mWalkForce = 200;
+        protected float mWalkForce = 2000;
         public float WalkForce { get => mWalkForce; }
 
         protected SkeletonAnimation mSkeletonAnimation;
@@ -139,9 +139,14 @@ namespace Maze_PlayerBase
             }
         }
 
-        void Update()
+        protected Vector3 Direction
         {
-
+            get
+            {
+                Vector3 result = new Vector3();
+                result = this.transform.rotation * this.EyesDirection;
+                return result;
+            }
         }
-    }
+}
 }
