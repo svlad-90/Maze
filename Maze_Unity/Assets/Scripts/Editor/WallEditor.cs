@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using Maze_Wall;
 using UnityEditor.SceneManagement;
+using Draw2DShapesLite;
 
 [CustomEditor(typeof(Maze_Wall.Wall))]
 [CanEditMultipleObjects]
@@ -17,7 +18,7 @@ public class WallEditor : Editor
         if(null != mWall)
         {
             EditorGUI.BeginChangeCheck();
-            mWall.Dimensions = EditorGUILayout.Vector2Field("Exclude from center factor", mWall.Dimensions);
+            mWall.Dimensions = EditorGUILayout.Vector2Field("Dimensions", mWall.Dimensions);
             mWall.NumberOfVertices = EditorGUILayout.IntField("Number of vertices", mWall.NumberOfVertices);
             mWall.ExcludeFromCenterFactor = EditorGUILayout.FloatField("Exclude from center factor", mWall.ExcludeFromCenterFactor);
 
@@ -38,6 +39,8 @@ public class WallEditor : Editor
     public void OnEnable()
     {
         mWall = (Wall)target;
+        mWall.init();
+        mWall.generateVertices();
     }
 
     public static void SetObjectDirty(GameObject obj)

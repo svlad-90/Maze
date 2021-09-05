@@ -16,7 +16,7 @@ TagManager:
   - Walls
   - EnemyBullets
   - PlayerBullets
-  - 
+  - Scene
   - 
   - 
   - 
@@ -40,4 +40,13 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Floor
+    uniqueID: 1936001025
+    locked: 0
+  - name: Scene
+    uniqueID: 1887863735
+    locked: 0
+  - name: Walls
+    uniqueID: 2268631625
     locked: 0

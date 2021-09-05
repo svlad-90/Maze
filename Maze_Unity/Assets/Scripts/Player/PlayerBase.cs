@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Spine.Unity;
+using Maze_MapBuilder;
+using Maze_Common;
 
 namespace Maze_PlayerBase
 {
@@ -25,6 +27,10 @@ namespace Maze_PlayerBase
         [SerializeField]
         protected float mVelocityMax = 0;
         public float VelocityMax { get => mVelocityMax; set => mVelocityMax = value; }
+
+        [SerializeField]
+        MapBuilder mMapBuilder;
+        public MapBuilder MapBuilder { get => mMapBuilder; }
 
         protected HashSet<eMoveDirection> mMoveDirections = new HashSet<eMoveDirection>();
         public HashSet<eMoveDirection> MoveDirections { get => mMoveDirections; set => mMoveDirections = value; }
@@ -116,6 +122,17 @@ namespace Maze_PlayerBase
             mWeapon = GetComponent<Maze_WeaponBase.WeaponBase>();
 
             mRigidBody = GetComponent<Rigidbody2D>();
+
+            if (null != mMapBuilder)
+            {
+                var walkableTiles = mMapBuilder.filterTiles2(new RectInt(0, 0, mMapBuilder.Width, mMapBuilder.Height));
+
+                var creationTileIndex = Common.randomRangeInt(0, walkableTiles.Count);
+                var creationTile = walkableTiles[creationTileIndex];
+
+                Vector2 creationPos = mMapBuilder.tileToPoint(creationTile);
+                transform.position = new Vector3(creationPos.x, creationPos.y, 0);
+            }
         }
 
         private void startMovement()
@@ -148,5 +165,5 @@ namespace Maze_PlayerBase
                 return result;
             }
         }
-}
+    }
 }

@@ -286,8 +286,22 @@ namespace Maze_Common
                         if (true == intersectionExists)
                         {
                             float x = randomRangeFloat(polygonCenter.x + ((intersectionVec.x - polygonCenter.x) * excludeFromCenterFactorNormalized), intersectionVec.x);
-                            float xPart = (x - polygonCenter.x) / (intersectionVec.x - polygonCenter.x);
-                            float y = polygonCenter.y + (intersectionVec.y - polygonCenter.y) * xPart;
+                            float y = 0;
+
+                            if (math.abs(x - polygonCenter.x) > 0.01)
+                            {
+                                float xPart = (x - polygonCenter.x) / (intersectionVec.x - polygonCenter.x);
+                                y = polygonCenter.y + (intersectionVec.y - polygonCenter.y) * xPart;
+                            }
+                            else
+                            {
+                                y = polygonCenter.y + (intersectionVec.y - polygonCenter.y);
+                            }
+
+                            if(x > dimensions.x + 1 || y > dimensions.y + 1)
+                            {
+                                throw new System.Exception("[Common][generateConvexPolygon] Wrong vertex generated!");
+                            }
 
                             Vector2 newPoint = new Vector2(x, y) + origin;
                             result.Add(newPoint);
@@ -589,6 +603,46 @@ namespace Maze_Common
                 r += dy / dx;
 
             return r;
+        }
+
+        public static Rect IntersectRect(this Rect a, Rect b)
+        {
+            float x = Math.Max((sbyte)a.x, (sbyte)b.x);
+            var num2 = Math.Min(a.x + a.width, b.x + b.width);
+            float y = Math.Max((sbyte)a.y, (sbyte)b.y);
+            var num4 = Math.Min(a.y + a.height, b.y + b.height);
+            if ((num2 >= x) && (num4 >= y))
+            {
+                return new Rect(x, y, num2 - x, num4 - y);
+            }
+
+            return new Rect();
+        }
+
+        public static RectInt IntersectRectInt(this RectInt a, RectInt b)
+        {
+            int x = Math.Max((sbyte)a.x, (sbyte)b.x);
+            var num2 = Math.Min(a.x + a.width, b.x + b.width);
+            int y = Math.Max((sbyte)a.y, (sbyte)b.y);
+            var num4 = Math.Min(a.y + a.height, b.y + b.height);
+            if ((num2 >= x) && (num4 >= y))
+            {
+                return new RectInt(x, y, num2 - x, num4 - y);
+            }
+
+            return new RectInt();
+        }
+
+        public static void swapReferences<T>(ref T rhs, ref T lhs)
+        {
+            T tmp = rhs;
+            rhs = lhs;
+            lhs = tmp;
+        }
+
+        public static Vector2 Rotate(this Vector2 v, float degrees)
+        {
+            return Quaternion.Euler(0, 0, degrees) * v;
         }
     }
 }
