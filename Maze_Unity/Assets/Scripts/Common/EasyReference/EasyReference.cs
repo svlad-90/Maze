@@ -63,5 +63,10 @@ namespace Maze_EasyReference
 
             throw new System.Exception("[getMousePosition] Error! Camera is null!");
         }
+
+        public RectInt ScreenSize()
+        {
+            return new RectInt(0,0, Screen.width, Screen.height);
+        }
     }
 }

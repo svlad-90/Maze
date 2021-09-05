@@ -4,7 +4,7 @@ using Maze_Common;
 
 namespace Maze_MazeGenerator
 {
-    enum eNeighbourType
+    public enum eNeighbourType
     {
         TOP = 0,
         RIGHT = 1,
@@ -12,7 +12,7 @@ namespace Maze_MazeGenerator
         LEFT = 3
     }
 
-    class MazeNode
+    public class MazeNode
     {
         private int mX;
         public int X { get => mX; }
@@ -160,9 +160,9 @@ namespace Maze_MazeGenerator
         }
     }
 
-    class MazeGenerator
+    public class MazeGenerator
     {
-        List<List<MazeNode>> generateMaze(int width, int height)
+        public static List<List<MazeNode>> generateMaze(int width, int height)
         {
             List<List<MazeNode>> result = new List<List<MazeNode>>();
 

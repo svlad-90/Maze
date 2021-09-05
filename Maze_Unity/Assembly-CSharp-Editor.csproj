@@ -53,8 +53,9 @@
     <UnityVersion>2021.1.18f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Editor\WallEditor.cs" />
     <Compile Include="Assets\Draw2DShapes\Editor\Draw2DEditor.cs" />
-    <Compile Include="Assets\Draw2DShapes\Editor\WallEditor.cs" />
+    <Compile Include="Assets\Editor\MeshRendererSortingEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

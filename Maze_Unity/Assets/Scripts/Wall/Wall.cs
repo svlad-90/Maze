@@ -28,10 +28,14 @@ namespace Maze_Wall
         public bool ShouldUpdate { get => mShouldUpdate; set => mShouldUpdate = value; }
 
         private List<Vector2> mVertices = new List<Vector2>();
-        public List<Vector2> MVertices { get => mVertices; }
+        public List<Vector2> Vertices { get => mVertices; }
 
         private List<ValueTuple<float, Vector2>> mAngleVertices = new List<ValueTuple<float, Vector2>>();
         public List<ValueTuple<float, Vector2>> AngleVertices { get => mAngleVertices; }
+
+        private MeshRenderer mMeshRenderer;
+        public MeshRenderer MeshRenderer { get => mMeshRenderer; }
+
 
         private PolygonCollider2D mPolygonCollider2DComp;
         private Rigidbody2D mRigidBody;
@@ -39,7 +43,7 @@ namespace Maze_Wall
         private Draw2D mGraphics;
 
         // Start is called before the first frame update
-        void init()
+        public void init()
         {
             if (null == GetComponent<Draw2D>())
             {
@@ -64,17 +68,13 @@ namespace Maze_Wall
             mRigidBody.isKinematic = true;
 
             mPolygonCollider2DComp = GetComponent<PolygonCollider2D>();
+            mMeshRenderer = GetComponent<MeshRenderer>();
         }
 
         void Start()
         {
             init();
             generateVertices();
-        }
-
-        private void OnValidate()
-        {
-            init();
         }
 
         public void generateVertices()

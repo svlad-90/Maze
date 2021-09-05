@@ -15,7 +15,7 @@ namespace Maze_WeaponBase
 
         [SerializeField]
         private GameObject mBulletPrefab;
-        public GameObject MBulletPrefab { get => mBulletPrefab; set => mBulletPrefab = value; }
+        public GameObject BulletPrefab { get => mBulletPrefab; set => mBulletPrefab = value; }
 
         [SerializeField]
         private float mFireRate = 1;
@@ -44,7 +44,7 @@ namespace Maze_WeaponBase
         public bool FireAllowed { get => mFireAllowed; }
 
         private Vector3 mDirection = new Vector3();
-        public Vector3 MDirection { get => mDirection; set => mDirection = value; }
+        public Vector3 Direction { get => mDirection; set => mDirection = value; }
 
         private Maze_Observer.Observer<Maze_BulletBase.DestroyBulletContext>  mDestroyBulletObserver = 
             new Maze_Observer.Observer<Maze_BulletBase.DestroyBulletContext>();
@@ -55,10 +55,10 @@ namespace Maze_WeaponBase
         {
             ObjectPool<GameObject> objectsPool = null;
 
-            if (false == WeaponBase.sBulletPoolMap.TryGetValue(this.mBulletPrefab.name, out objectsPool))
+            if (false == WeaponBase.sBulletPoolMap.TryGetValue(name, out objectsPool))
             {
                 objectsPool = new ObjectPool<GameObject>(
-                createFunc: () => { return Instantiate(this.mBulletPrefab); },
+                createFunc: () => { return Instantiate(mBulletPrefab); },
                 actionOnGet: (GameObject obj) =>
                 {
                     var bulletComponent = obj.GetComponent<Maze_BulletBase.BulletBase>();
@@ -81,7 +81,7 @@ namespace Maze_WeaponBase
 
                     obj.SetActive(false);
                 });
-                WeaponBase.sBulletPoolMap.Add(this.mBulletPrefab.name, objectsPool);
+                WeaponBase.sBulletPoolMap.Add(name, objectsPool);
             }
 
             return objectsPool;

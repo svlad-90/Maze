@@ -56,20 +56,34 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\FastPriorityQueue.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\IFixedSizePriorityQueue.cs" />
     <Compile Include="Assets\Scripts\Common\Common.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\IPriorityQueue.cs" />
     <Compile Include="Assets\Scripts\Bullet\BulletBase.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\Properties\AssemblyInfo.cs" />
     <Compile Include="Assets\Scripts\Common\FollowingObject\FollowingObject.cs" />
     <Compile Include="Assets\Scripts\Weapon\WeaponTarget.cs" />
     <Compile Include="Assets\Scripts\Weapon\WeaponCursor.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCursor.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerBase.cs" />
     <Compile Include="Assets\Scripts\Common\MathUtils.cs" />
+    <Compile Include="Assets\Scripts\Common\Deque\Deque.cs" />
+    <Compile Include="Assets\Scripts\Map\MapBuilder.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerTrain.cs" />
+    <Compile Include="Assets\Scripts\Common\Optional.cs" />
     <Compile Include="Assets\Draw2DShapes\Triangulator.cs" />
     <Compile Include="Assets\Scripts\Weapon\WeaponBase.cs" />
+    <Compile Include="Assets\Scripts\Common\Deque\CollectionHelpers.cs" />
     <Compile Include="Assets\Scripts\Common\Observer\Observer.cs" />
     <Compile Include="Assets\Draw2DShapes\Draw2D.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\FastPriorityQueueNode.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\GenericPriorityQueueNode.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\StablePriorityQueue.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\StablePriorityQueueNode.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\SimplePriorityQueue.cs" />
     <Compile Include="Assets\Scripts\Common\VectorUtils.cs" />
+    <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\GenericPriorityQueue.cs" />
     <Compile Include="Assets\Scripts\Common\FSM\FSM.cs" />
     <Compile Include="Assets\Scripts\Common\EasyReference\EasyReference.cs" />
     <Compile Include="Assets\Scripts\Wall\Wall.cs" />
