@@ -1,17 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uween.Runtime", "Uween.Runtime.csproj", "{039133DF-EF0D-2BC6-314A-D5BC7C0D2A5B}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{00C42777-10E6-BED5-C24E-D3348C0E75EF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spine-unity-examples", "spine-unity-examples.csproj", "{7E25FBA3-2AF8-D0C8-2156-996765EE200B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spine-unity", "spine-unity.csproj", "{AE1588A7-0B86-751B-372E-86E6AD8D747D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spine-unity-editor", "spine-unity-editor.csproj", "{82B724D4-ACC0-5FAC-C623-D985D4DE777B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spine-unity-examples-editor", "spine-unity-examples-editor.csproj", "{EF8FA2B8-15E5-97FD-D97B-ECA8F76800F4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +21,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{039133DF-EF0D-2BC6-314A-D5BC7C0D2A5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{039133DF-EF0D-2BC6-314A-D5BC7C0D2A5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{039133DF-EF0D-2BC6-314A-D5BC7C0D2A5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{039133DF-EF0D-2BC6-314A-D5BC7C0D2A5B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{00C42777-10E6-BED5-C24E-D3348C0E75EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{00C42777-10E6-BED5-C24E-D3348C0E75EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00C42777-10E6-BED5-C24E-D3348C0E75EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -31,6 +37,10 @@ Global
 		{AE1588A7-0B86-751B-372E-86E6AD8D747D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE1588A7-0B86-751B-372E-86E6AD8D747D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE1588A7-0B86-751B-372E-86E6AD8D747D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}.Release|Any CPU.Build.0 = Release|Any CPU
 		{82B724D4-ACC0-5FAC-C623-D985D4DE777B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{82B724D4-ACC0-5FAC-C623-D985D4DE777B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82B724D4-ACC0-5FAC-C623-D985D4DE777B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,10 +49,6 @@ Global
 		{EF8FA2B8-15E5-97FD-D97B-ECA8F76800F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF8FA2B8-15E5-97FD-D97B-ECA8F76800F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF8FA2B8-15E5-97FD-D97B-ECA8F76800F4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8292EE31-6F00-9EA2-AF76-7EAC5CE4E000}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

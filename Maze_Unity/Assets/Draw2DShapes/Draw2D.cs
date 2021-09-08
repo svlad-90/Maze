@@ -140,10 +140,6 @@ namespace Draw2DShapesLite
                 if (collider != null)
                     DestroyImmediate(collider);
             }
-
         }
-
-       
-       
     }
 }

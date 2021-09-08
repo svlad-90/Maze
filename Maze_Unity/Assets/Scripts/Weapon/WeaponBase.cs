@@ -65,7 +65,6 @@ namespace Maze_WeaponBase
                     if (null != bulletComponent)
                     {
                         bulletComponent.reuse();
-                        bulletComponent.Layer = mLayer;
                         bulletComponent.DestroyBulletSubject.attach(mDestroyBulletObserver);
                     }
 
@@ -76,7 +75,7 @@ namespace Maze_WeaponBase
                     var bulletComponent = obj.GetComponent<Maze_BulletBase.BulletBase>();
                     if (null != bulletComponent)
                     {
-                        bulletComponent.DestroyBulletSubject.detach(this.mDestroyBulletObserver);
+                        bulletComponent.DestroyBulletSubject.detach(mDestroyBulletObserver);
                     }
 
                     obj.SetActive(false);
@@ -91,9 +90,9 @@ namespace Maze_WeaponBase
         {
             GameObject bulletInstance = null;
 
-            if (null != this.mBulletPrefab)
+            if (null != mBulletPrefab)
             {
-                ObjectPool<GameObject> objectsPool = findOrCreateBulletsPool(this.mBulletPrefab.name);
+                ObjectPool<GameObject> objectsPool = findOrCreateBulletsPool(mBulletPrefab.name);
 
                 if (null != objectsPool)
                 {
@@ -115,9 +114,9 @@ namespace Maze_WeaponBase
 
         protected void destroyBullet(GameObject bullet)
         {
-            if (null != this.mBulletPrefab)
+            if (null != mBulletPrefab)
             {
-                ObjectPool<GameObject> objectsPool = findOrCreateBulletsPool(this.mBulletPrefab.name);
+                ObjectPool<GameObject> objectsPool = findOrCreateBulletsPool(mBulletPrefab.name);
 
                 if (null != objectsPool)
                 {
@@ -134,23 +133,23 @@ namespace Maze_WeaponBase
 
         private void scheduleFire()
         {
-            if (true == this.mFireAllowed)
+            if (true == mFireAllowed)
             {
-                this.actualFire();
-                this.mFireAllowed = false;
+                actualFire();
+                mFireAllowed = false;
 
-                mTimer = UnityTimer.Timer.Register(this.mFireRate, () =>
+                mTimer = UnityTimer.Timer.Register(mFireRate, () =>
                 {
-                    if (true == this.mFireOn)
+                    if (true == mFireOn)
                     {
-                        this.actualFire();
+                        actualFire();
                     }
 
-                    this.mFireAllowed = true;
+                    mFireAllowed = true;
 
-                    if (true == this.mFireOn)
+                    if (true == mFireOn)
                     {
-                        this.scheduleFire();
+                        scheduleFire();
                     }
                 });
             }
@@ -158,29 +157,29 @@ namespace Maze_WeaponBase
 
         public void fireOn()
         {
-            if (false == this.mFireOn)
+            if (false == mFireOn)
             {
-                this.mFireOn = true;
-                this.scheduleFire();
+                mFireOn = true;
+                scheduleFire();
             }
         }
 
         public void fireOff()
         {
-            if (true == this.mFireOn)
+            if (true == mFireOn)
             {
-                this.mFireOn = false;
+                mFireOn = false;
             }
         }
 
         // Start is called before the first frame update
         void Start()
         {
-            this.mEasyReference = new Maze_EasyReference.EasyReference(this.gameObject);
+            mEasyReference = new Maze_EasyReference.EasyReference(gameObject);
 
-            this.mDestroyBulletObserver.setObserverCallback((Maze_BulletBase.DestroyBulletContext data) => 
+            mDestroyBulletObserver.setObserverCallback((Maze_BulletBase.DestroyBulletContext data) => 
             {
-                this.destroyBullet(data.Bullet);
+                destroyBullet(data.Bullet);
             });
         }
 

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -53,9 +53,12 @@
     <UnityVersion>2021.1.18f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assets\Editor\MeshRendererSortingEditor.cs" />
     <Compile Include="Assets\Scripts\Editor\WallEditor.cs" />
     <Compile Include="Assets\Draw2DShapes\Editor\Draw2DEditor.cs" />
-    <Compile Include="Assets\Editor\MeshRendererSortingEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -784,6 +787,10 @@
     <ProjectReference Include="spine-unity-editor.csproj">
       <Project>{82B724D4-ACC0-5FAC-C623-D985D4DE777B}</Project>
       <Name>spine-unity-editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="Uween.Runtime.csproj">
+      <Project>{039133DF-EF0D-2BC6-314A-D5BC7C0D2A5B}</Project>
+      <Name>Uween.Runtime</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

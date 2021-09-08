@@ -22,6 +22,7 @@ namespace Maze_WeaponTarget
 
                 if (null != bulletComponent)
                 {
+                    bulletComponent.Layer = Layer;
                     bulletComponent.BulletTimeAlive = this.BulletTimeAlive;
                     bulletComponent.BulletSpeed = this.BulletSpeed;
 

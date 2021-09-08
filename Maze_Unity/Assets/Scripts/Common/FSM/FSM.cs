@@ -14,30 +14,30 @@ namespace Maze_FSM
         private TransitionMap<StateIdsEnum, TransitionIdsEnum, Context> mTransitionMap;
         public TransitionMap<StateIdsEnum, TransitionIdsEnum, Context> TransitionMap { get => mTransitionMap; set => mTransitionMap = value; }
 
-        void AddTransition(Transition<StateIdsEnum, TransitionIdsEnum, Context> val)
+        public void AddTransition(Transition<StateIdsEnum, TransitionIdsEnum, Context> val)
         {
-            this.mTransitionMap.Add(val.TransitionId, val);
+            mTransitionMap.Add(val.TransitionId, val);
         }
 
         private FSMCallback<StateIdsEnum, Context> mOnEnter;
         private FSMCallback<StateIdsEnum, Context> mOnExit;
 
-        State(StateIdsEnum stateId, FSMCallback<StateIdsEnum, Context> onEnter, FSMCallback<StateIdsEnum, Context> onExit)
+        public State(StateIdsEnum stateId, FSMCallback<StateIdsEnum, Context> onEnter, FSMCallback<StateIdsEnum, Context> onExit)
         {
-            this.mStateId = stateId;
-            this.mOnEnter = onEnter;
-            this.mOnExit = onExit;
-            this.mTransitionMap = new TransitionMap<StateIdsEnum, TransitionIdsEnum, Context>();
+            mStateId = stateId;
+            mOnEnter = onEnter;
+            mOnExit = onExit;
+            mTransitionMap = new TransitionMap<StateIdsEnum, TransitionIdsEnum, Context>();
         }
 
         public void enter(Context context)
         {
-            this.mOnEnter(context);
+            mOnEnter(context);
         }
 
         public void exit(Context context)
         {
-            this.mOnExit(context);
+            mOnExit(context);
         }
     }
     public class Transition<StateIdsEnum, TransitionIdsEnum, Context>
@@ -50,32 +50,35 @@ namespace Maze_FSM
         private State<StateIdsEnum, TransitionIdsEnum, Context>  mStartState;
         private State<StateIdsEnum, TransitionIdsEnum, Context>  mEndState;
 
-        Transition(TransitionIdsEnum transitionId,
+        public Transition(TransitionIdsEnum transitionId,
                 State<StateIdsEnum, TransitionIdsEnum, Context>  startState,
                 State<StateIdsEnum, TransitionIdsEnum, Context>  endState,
                 FSMCallback<StateIdsEnum, Context>  onTransition = null)
         {
-            this.mTransitionId = transitionId;
-            this.mStartState = startState;
-            this.mEndState = endState;
-            this.mOnTransition = onTransition;
+            mTransitionId = transitionId;
+            mStartState = startState;
+            mEndState = endState;
+            mOnTransition = onTransition;
         }
 
         public State<StateIdsEnum, TransitionIdsEnum, Context>  applyTransition(Context context)
         {
-            if (this.mStartState != this.mEndState)
+            if (mStartState != mEndState)
             {
-                this.mStartState.exit(context);
-                this.mEndState.enter(context);
+                mStartState.exit(context);
+                mEndState.enter(context);
             }
 
-            this.mOnTransition(context);
+            if (null != mOnTransition)
+            {
+                mOnTransition(context);
+            }
 
-            return this.mEndState;
+            return mEndState;
         }
     }
 
-    public class FSM<StateIdsEnum, TransitionIdsEnum, tContext>
+    public class FSM<StateIdsEnum, TransitionIdsEnum, tContext > where tContext : new()
     {
         private bool mInitialized = false;
         public bool Initialized { get => mInitialized; }
@@ -88,30 +91,41 @@ namespace Maze_FSM
         private tContext mContext;
         public tContext Context { get => mContext; set => mContext = value; }
 
-        FSM(State<StateIdsEnum, TransitionIdsEnum, tContext> initialState, tContext context)
+        public FSM(State<StateIdsEnum, TransitionIdsEnum, tContext> initialState)
         {
-            this.mInitialState = initialState;
-            this.mCurrentState = this.mInitialState;
-            this.mContext = context;
+            mInitialState = initialState;
+            mCurrentState = mInitialState;
+            mContext = new tContext();
         }
 
-        void init()
+        // takes effect only if init was already called
+        public void restart()
         {
-            if (false == this.mInitialized)
+            if (true == mInitialized)
             {
-                this.mInitialized = true;
-                this.mCurrentState.enter(this.mContext);
+                mContext = new tContext();
+                mCurrentState = mInitialState;
+                mCurrentState.enter(mContext);
             }
         }
 
-        public void applyTransition(TransitionIdsEnum transitionId)
+        public void init()
         {
-            if (true == this.mInitialized)
+            if (false == mInitialized)
+            {
+                mInitialized = true;
+                mCurrentState.enter(mContext);
+            }
+        }
+
+        public void ApplyTransition(TransitionIdsEnum transitionId)
+        {
+            if (true == mInitialized)
             {
                 Transition<StateIdsEnum, TransitionIdsEnum, tContext> foundTransition;
-                if (this.mCurrentState.TransitionMap.TryGetValue(transitionId, out foundTransition))
+                if (mCurrentState.TransitionMap.TryGetValue(transitionId, out foundTransition))
                 {
-                    this.mCurrentState = foundTransition.applyTransition(this.mContext);
+                    mCurrentState = foundTransition.applyTransition(mContext);
                 }
             }
             else
