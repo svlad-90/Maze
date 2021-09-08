@@ -73,6 +73,7 @@
     <Compile Include="Assets\Scripts\Player\PlayerTrain.cs" />
     <Compile Include="Assets\Scripts\Common\Optional.cs" />
     <Compile Include="Assets\Draw2DShapes\Triangulator.cs" />
+    <Compile Include="Assets\Scripts\Spawner\Spawner.cs" />
     <Compile Include="Assets\Scripts\Weapon\WeaponBase.cs" />
     <Compile Include="Assets\Scripts\Common\Deque\CollectionHelpers.cs" />
     <Compile Include="Assets\Scripts\Common\Observer\Observer.cs" />
@@ -81,10 +82,12 @@
     <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\GenericPriorityQueueNode.cs" />
     <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\StablePriorityQueue.cs" />
     <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\StablePriorityQueueNode.cs" />
+    <Compile Include="Assets\Scripts\DebugGraphics\DebugGraphics.cs" />
     <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\SimplePriorityQueue.cs" />
     <Compile Include="Assets\Scripts\Common\VectorUtils.cs" />
     <Compile Include="Assets\Scripts\Thirdparty\PriorityQueue\GenericPriorityQueue.cs" />
     <Compile Include="Assets\Scripts\Common\FSM\FSM.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyBase.cs" />
     <Compile Include="Assets\Scripts\Common\EasyReference\EasyReference.cs" />
     <Compile Include="Assets\Scripts\Wall\Wall.cs" />
     <Compile Include="Assets\Scripts\Maze\MazeGenerator.cs" />
@@ -788,6 +791,10 @@
     <ProjectReference Include="spine-unity-editor.csproj">
       <Project>{82B724D4-ACC0-5FAC-C623-D985D4DE777B}</Project>
       <Name>spine-unity-editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="Uween.Runtime.csproj">
+      <Project>{039133DF-EF0D-2BC6-314A-D5BC7C0D2A5B}</Project>
+      <Name>Uween.Runtime</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -11,12 +11,13 @@ public class WeaponCursor : Maze_WeaponBase.WeaponBase
 
         if (null != bullet)
         {
-            bullet.transform.parent = gameObject.transform.parent;
+            bullet.transform.parent = transform.parent;
 
             var bulletComponent = bullet.GetComponent<Maze_BulletBase.BulletBase>();
 
             if (null != bulletComponent)
             {
+                bulletComponent.Layer = Layer;
                 bulletComponent.BulletTimeAlive = this.BulletTimeAlive;
                 bulletComponent.BulletSpeed = this.BulletSpeed;
 

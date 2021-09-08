@@ -120,18 +120,7 @@ namespace Maze_Common
          */
         public static int randomRangeInt(int from, int to)
         {
-            System.Random r = new System.Random();
-            int rInt = r.Next(from, to);
-            return rInt;
-        }
-
-        // randomRangeDouble - the same as randomRangeInt, but works for double type.
-        public static double randomRangeDouble(double from, double to)
-        {
-            System.Random r = new System.Random();
-            double range = to - from;
-            double rDouble = r.NextDouble() * range; //for doubles
-            return rDouble;
+            return UnityEngine.Random.Range(from, to);
         }
 
         // randomRangeFloat - the same as randomRangeInt, but works for double type.

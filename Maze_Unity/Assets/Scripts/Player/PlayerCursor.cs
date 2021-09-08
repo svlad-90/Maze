@@ -10,8 +10,8 @@ namespace Maze_PlayerCursor
     {
         public CursorPlayerGridPositionContext(Vector2 playerPosition, Maze_PlayerCursor.PlayerCursor player )
         {
-            this.mPlayerPosition = playerPosition;
-            this.mPlayer = player;
+            mPlayerPosition = playerPosition;
+            mPlayer = player;
         }
 
         private Vector2 mPlayerPosition;
@@ -34,7 +34,7 @@ namespace Maze_PlayerCursor
                 if (false == GridPosition.Equals(value))
                 {
                     GridPosition = value;
-                    this.mCursorPlayerGridPositionSubject.notify(new CursorPlayerGridPositionContext(this.mGridPosition, this));
+                    mCursorPlayerGridPositionSubject.notify(new CursorPlayerGridPositionContext(mGridPosition, this));
                 }
             }
         }
@@ -46,7 +46,7 @@ namespace Maze_PlayerCursor
         public new void Start()
         {
             base.Start();
-            this.mEasyReference = new Maze_EasyReference.EasyReference(this.gameObject);
+            mEasyReference = new Maze_EasyReference.EasyReference(gameObject);
         }
 
         private Vector3 getMovementVec()
@@ -55,7 +55,7 @@ namespace Maze_PlayerCursor
 
             Vector3 movementVec = new Vector3();
 
-            foreach(var element in this.MoveDirections) 
+            foreach(var element in MoveDirections) 
             {
                 switch(element)
                 {
@@ -75,7 +75,7 @@ namespace Maze_PlayerCursor
             };
 
             movementVec.Normalize();
-            movementVec.Scale( new Vector3(this.mAcceleration * this.mWalkForce, this.mAcceleration * this.mWalkForce, 0) );
+            movementVec.Scale( new Vector3(mAcceleration * mWalkForce, mAcceleration * mWalkForce, 0) );
 
             return movementVec;
         }
@@ -84,21 +84,21 @@ namespace Maze_PlayerCursor
         {
             if (mRigidBody != null)
             {
-                if (0 != this.mMoveDirections.Count)
+                if (0 != mMoveDirections.Count)
                 {
-                    if (mRigidBody.velocity.x < this.mVelocityMax ||
-                    mRigidBody.velocity.x > -this.mVelocityMax)
+                    if (mRigidBody.velocity.x < mVelocityMax ||
+                    mRigidBody.velocity.x > -mVelocityMax)
                     {
-                        var movementVec = this.getMovementVec();
+                        var movementVec = getMovementVec();
                         movementVec.x *= Time.deltaTime;
                         movementVec.y = 0;
                         mRigidBody.AddForce(Common.toVec2(movementVec));
                     }
 
-                    if (mRigidBody.velocity.y < this.mVelocityMax ||
-                    mRigidBody.velocity.y > -this.mVelocityMax)
+                    if (mRigidBody.velocity.y < mVelocityMax ||
+                    mRigidBody.velocity.y > -mVelocityMax)
                     {
-                        var movementVec = this.getMovementVec();
+                        var movementVec = getMovementVec();
                         movementVec.x = 0;
                         movementVec.y *= Time.deltaTime;
                         mRigidBody.AddForce(Common.toVec2(movementVec));
@@ -108,9 +108,9 @@ namespace Maze_PlayerCursor
 
             if (null != mEasyReference)
             {
-                var mousePosWorldCoord = this.mEasyReference.GetMousePosition();
+                var mousePosWorldCoord = mEasyReference.GetMousePosition();
 
-                var nodeWorldCoord = this.gameObject.transform.position;
+                var nodeWorldCoord = gameObject.transform.position;
 
                 Vector2 lookAtVec = new Vector2();
 
@@ -120,7 +120,7 @@ namespace Maze_PlayerCursor
                 var eyeDirection2D = new Vector2(mEyesDirection.x, mEyesDirection.y);
                 float angleDeg = Common.signAngle(eyeDirection2D, lookAtVec);
 
-                this.gameObject.transform.eulerAngles = new Vector3(0, 0, angleDeg);
+                gameObject.transform.eulerAngles = new Vector3(0, 0, angleDeg);
             }
         }
     }

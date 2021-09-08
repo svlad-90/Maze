@@ -914,10 +914,10 @@ namespace Maze_MapBuilder
         {
             List<MapNode>  result = new List<MapNode>();
 
-            if (start.X > 0 && start.X<mHeight
-            && start.Y> 0 && start.Y<mWidth
-            && finish.X> 0 && finish.X< mHeight
-            && finish.Y> 0 && finish.Y< mWidth)
+            if (start.X >= 0 && start.X<mHeight
+            && start.Y >= 0 && start.Y<mWidth
+            && finish.X >= 0 && finish.X< mHeight
+            && finish.Y >= 0 && finish.Y< mWidth)
             {
                 resetVisitFlag();
 
@@ -962,9 +962,10 @@ namespace Maze_MapBuilder
                         {
                             int new_cost = cost_so_far_for_current_node + next.Value.getCost();
 
+                            cost_so_far.Add(next.Value, new_cost);
+
                             var cost_so_far_for_next_node = cost_so_far[next.Value];
 
-                            cost_so_far.Add(next.Value, new_cost);
                             int priority = new_cost + heuristic(finish.Y, finish.X, next.Value.Y, next.Value.X);
                             frontier.Enqueue(new MapPriorityQueueNode(next.Value), priority);
                             came_from.Add(next.Value, current.MapNode);
