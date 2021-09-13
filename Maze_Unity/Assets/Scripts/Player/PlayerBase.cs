@@ -117,6 +117,11 @@ namespace Maze_PlayerBase
             if (mSkeletonAnimation != null)
             {
                 mSkeletonAnimation.state.SetAnimation(0, "idle", true);
+                
+                if(null != mSkeletonAnimation.skeleton)
+                {
+                    mSkeletonAnimation.skeleton.R = 255;
+                }
             }
 
             mWeapon = GetComponent<Maze_WeaponBase.WeaponBase>();

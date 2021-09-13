@@ -11,7 +11,7 @@ using Maze_FSM;
 using Maze_MapBuilder;
 using Maze_Observer;
 using Maze_Wall;
-using Maze_DebugGraphics;
+using Maze_Tween;
 
 namespace Maze_EnemyBase
 {
@@ -108,7 +108,6 @@ namespace Maze_EnemyBase
         private bool mShouldNotifyDestroy = false;
         private bool mFSMTransitionBlocked = false;
         private Observer<Maze_PlayerCursor.CursorPlayerGridPositionContext>  mCursorPlayerGridPositionObserver = new Observer<Maze_PlayerCursor.CursorPlayerGridPositionContext>();
-        private DebugGraphics mDebugGraphics = null;
         private MeshRenderer mMeshRenderer = null;
         private float mCurrentAngle = 0;
         private Rigidbody2D mRigidBody = null;
@@ -123,6 +122,7 @@ namespace Maze_EnemyBase
         private Spine.AnimationState.TrackEntryDelegate mHandleDeathAnimationEnding = null;
         private RectTransform mPlayerRectTransform;
         private RectTransform mRectTransform;
+        private Tween<Color> mFadeInTween;
 
         private void startFire()
         {
@@ -330,11 +330,6 @@ namespace Maze_EnemyBase
                     mIsTurnOffCollision = true;
 
                     stopFire();
-
-                    if (null != mDebugGraphics)
-                    {
-                        mDebugGraphics.clear();
-                    }
                 }
             }, 
             (EnemyFSMContext context) =>
@@ -457,11 +452,6 @@ namespace Maze_EnemyBase
         // Start is called before the first frame update
         void Start()
         {
-            if (true == mDebug)
-            {
-                mDebugGraphics = new DebugGraphics(gameObject.transform.parent);
-            }
-
             mRectTransform = GetComponent<RectTransform>();
             mRigidBody = GetComponent<Rigidbody2D>();
             mCircleCollider = GetComponent<CircleCollider2D>();
@@ -533,24 +523,6 @@ namespace Maze_EnemyBase
             }
         }
 
-        void drawBypassObstaclePath()
-        {
-            if (null != mDebugGraphics)
-            {
-                //mDebugGraphics.clear();
-
-                if (0 != mPathToPlayer.Count)
-                {
-                    foreach (var pathElement in mPathToPlayer)
-                    {
-                        mDebugGraphics.addVertex(pathElement);
-                    }
-                }
-
-                mDebugGraphics.draw();
-            }
-        }
-
         private Vector3 getMovementVec()
         {
             var movementVec = new Vector3();
@@ -576,7 +548,7 @@ namespace Maze_EnemyBase
                     {
                         var vecLength = (Common.clone(mPathToPlayer[0]) - Common.toVec2(transform.position)).magnitude;
 
-                        if (math.abs(vecLength) < 10)
+                        if (math.abs(vecLength) < 0.1)
                         {
                             mPathToPlayer.RemoveAt(0);
                         }
@@ -602,7 +574,16 @@ namespace Maze_EnemyBase
             {
                 mPathToPlayer = mMap.findPath(mMap.pointToTile(Common.toVec2(transform.position)), mMap.pointToTile(Common.toVec2(mPlayerInFocus.transform.position)));
 
-                drawBypassObstaclePath();
+                if (true == mDebug)
+                {
+                    if (mPathToPlayer.Count >= 2)
+                    {
+                        for (int i = 0; i < mPathToPlayer.Count - 1; ++i)
+                        {
+                            UnityEngine.Debug.DrawLine(Common.toVec3(mPathToPlayer[i]), Common.toVec3(mPathToPlayer[i + 1]), new Color(0, 255, 0), 5.0f);
+                        }
+                    }
+                }
             }
         }
 
@@ -672,6 +653,11 @@ namespace Maze_EnemyBase
 
                             foreach(var coordinatePair in checkCoordinates)
                             {
+                                if (true == mDebug)
+                                {
+                                    UnityEngine.Debug.DrawLine(Common.toVec3(coordinatePair.enemyCoord), Common.toVec3(coordinatePair.playerCoord), new Color(255,0,0), 1.0f);
+                                }
+
                                 var raycastResult = mMap.raycast(coordinatePair.enemyCoord, coordinatePair.playerCoord);
 
                                 if (false == raycastResult.Item1)
@@ -698,7 +684,6 @@ namespace Maze_EnemyBase
                             else
                             {
                                 mFSM.ApplyTransition(EnemyFSMTransitions.To_BypassObstacle);
-                                drawBypassObstaclePath();
                             }
                         }
                     }
@@ -824,6 +809,11 @@ namespace Maze_EnemyBase
                     mShouldNotifyDestroy = false;
                 }
             }
+        }
+
+        private void Awake()
+        {
+            mFadeInTween = new Tween<Color>();
         }
 
         // Update is called once per frame

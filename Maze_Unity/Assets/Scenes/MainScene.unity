@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91d82dc5fae8dcd4cafe60fddd5bc76e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mSpawnDelaySec: 0.5
+  mSpawnDelaySec: 0.25
   mPlayer: {fileID: 1688444282}
   mMinCellDistance: 5
   mMaxCellDistance: 10

@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Pool;
 using Unity.Mathematics;
-using Draw2DShapesLite;
 using Maze_Wall;
 using Maze_MazeGenerator;
 using Maze_Common;
@@ -1451,13 +1450,8 @@ namespace Maze_MapBuilder
             return result;
         }
 
-        public List<ValueTuple<float, float>> formVisiblePolygon(Vector2 point, float radius, Draw2D debugGraphics)
+        public List<ValueTuple<float, float>> formVisiblePolygon(Vector2 point, float radius)
         {
-            if (null != debugGraphics)
-            {
-                debugGraphics.CleanVertices();
-            }
-
             List<ValueTuple<float, float>> result = new List<ValueTuple<float, float>>();
 
             var nodePos = new Vector2();
@@ -1697,11 +1691,6 @@ namespace Maze_MapBuilder
                     var collisionResultTmpInputVec = new Vector2();
                     foreach(var impactingVertex in impactingWallVertices)
                     {
-                        if (null != debugGraphics)
-                        {
-                            debugGraphics.vertices.Add(new Vector3(impactingVertex.Item1, impactingVertex.Item2, 0));
-                        }
-
                         collisionResultTmpInputVec.x = impactingVertex.Item1;
                         collisionResultTmpInputVec.y = impactingVertex.Item2;
                         var collisionResult = raycast(point, collisionResultTmpInputVec);
@@ -1743,8 +1732,6 @@ namespace Maze_MapBuilder
                             }
                         }
                     }
-
-                    debugGraphics.MakeMesh();
                 }
                 else
                 {
@@ -1987,11 +1974,11 @@ namespace Maze_MapBuilder
             throw new System.Exception("[MapBuilder][tileToPoint]: Error! mMap == null!");
         }
 
-        public List<ValueTuple<float, float>> formVisiblePolygon(Vector2 point, float radius, Draw2D debugGraphics = null)
+        public List<ValueTuple<float, float>> formVisiblePolygon(Vector2 point, float radius)
         {
             if (null != mMap)
             {
-                return mMap.formVisiblePolygon(point, radius, debugGraphics);
+                return mMap.formVisiblePolygon(point, radius);
             }
 
             throw new System.Exception("[MapBuilder][formVisiblePolygon]: Error! mMap == null!");
