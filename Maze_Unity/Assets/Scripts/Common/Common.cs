@@ -633,5 +633,27 @@ namespace Maze_Common
         {
             return Quaternion.Euler(0, 0, degrees) * v;
         }
+
+        public static Vector2[] toVec2Array(Vector3[] v3)
+        {
+            Vector2[] v2 = new Vector2[v3.Length];
+            for (int i = 0; i < v3.Length; i++)
+            {
+                Vector3 tempV3 = v3[i];
+                v2[i] = new Vector2(tempV3.x, tempV3.y);
+            }
+            return v2;
+        }
+
+        public static Vector3[] toVec3Array(Vector2[] v2)
+        {
+            Vector3[] v3 = new Vector3[v2.Length];
+            for (int i = 0; i < v2.Length; i++)
+            {
+                Vector2 tempV2 = v2[i];
+                v3[i] = new Vector3(tempV2.x, tempV2.y, 0);
+            }
+            return v3;
+        }
     }
 }

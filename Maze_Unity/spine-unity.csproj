@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -52,9 +52,6 @@
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2021.1.18f1</UnityVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Spine\Runtime\spine-unity\Components\SkeletonUtility\FollowLocationRigidbody2D.cs" />
     <Compile Include="Assets\Spine\Runtime\spine-unity\Components\Following\BoundingBoxFollowerGraphic.cs" />
@@ -157,6 +154,8 @@
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Spine-Skeleton-Lit-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Sprite\SpritesVertexLit-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\CGIncludes\Spine-Skeleton-Lit-Common.cginc" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-SkeletonLit-ShadowCasterPass-URP.hlsl" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\2D\Include\Spine-Sprite-NormalsPass-URP-2D.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\CGIncludes\Spine-Common.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Utility\HiddenPass.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\SkeletonGraphic\Spine-SkeletonGraphic-Additive.shader" />
@@ -167,13 +166,22 @@
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\BlendModes\Spine-Skeleton-PMA-Additive-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-Skeleton-Tint.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Sprite\SpritesPixelLit-Outline.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-Skeleton-URP.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\SpineCoreShaders\Spine-Outline-Common.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\CameraNormalsTexture.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Common-ShadowCasterPass-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\BlendModes\Spine-Skeleton-PMA-Additive.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\SpineCoreShaders\SpriteLighting.cginc" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Input-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\SpritesUnlit.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-SkeletonLit-ForwardPass-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-Skeleton-Fill.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\2D\Spine-SkeletonLit-URP-2D.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Spine-Skeleton-Lit-ZWrite-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\SkeletonGraphic\Spine-SkeletonGraphic-TintBlack-Outline.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Sprite-Common-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Utility\Hidden-Spine-Bones.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Skeleton-ForwardPass-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\SkeletonGraphic\Spine-SkeletonGraphic-Screen.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\BlendModes\Spine-Skeleton-PMA-Screen-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\SkeletonGraphic\Spine-SkeletonGraphic-TintBlack.shader" />
@@ -182,7 +190,10 @@
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\CGIncludes\Spine-DepthOnlyPass.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Sprite\SpritesUnlit-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\CameraDepthNormalsTexture.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Outline-Pass-URP.hlsl" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\2D\Spine-Sprite-URP-2D.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\CGIncludes\SpriteShadows.cginc" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-SkeletonLit-URP.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\CGIncludes\Spine-Skeleton-Lit-Common-Shadow.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\CGIncludes\SpriteVertexLighting.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\CameraDepthTexture.shader" />
@@ -190,13 +201,19 @@
     <None Include="Assets\Spine\Runtime\spine-unity.asmdef" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\CGIncludes\Spine-Outline-Common.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Spine-Skeleton-TintBlack-Outline.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-DepthOnlyPass-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-Special-Skeleton-Grayscale.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\SkeletonGraphic\Spine-SkeletonGraphic.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\BlendModes\Spine-Skeleton-PMA-Multiply-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\BlendModes\Spine-Skeleton-PMA-Multiply.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\SpriteDepthNormalsTexture.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Sprite-ShadowCasterPass-URP.hlsl" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Input-Outline-URP.hlsl" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Spine-Skeleton-OutlineOnly-URP.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\CGIncludes\SpriteLighting.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\SpritesVertexLit.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\SpineCoreShaders\ShaderShared.cginc" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Input-Sprite-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\CGIncludes\Spine-Skeleton-Tint-Common.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Spine-Special-Skeleton-Grayscale-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-Skeleton-Lit.shader" />
@@ -204,12 +221,17 @@
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-Skeleton.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\CGIncludes\Spine-Outline-Pass.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\BlendModes\Spine-Skeleton-PMA-Screen.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\SpineCoreShaders\Spine-Common.cginc" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Sprite-DepthOnlyPass-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-Skeleton-TintBlack.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\Spine-Skeleton-Tint-Outline.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\SpritesPixelLit.shader" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Sprite\CGIncludes\SpritePixelLighting.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\SkeletonGraphic\CGIncludes\Spine-SkeletonGraphic-NormalPass.cginc" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Outline\SkeletonGraphic\Spine-SkeletonGraphic-Outline.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Spine-Sprite-URP.shader" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\2D\Include\Spine-Sprite-StandardPass-URP-2D.hlsl" />
+    <None Include="Assets\Spine\Runtime\spine-unity\Shaders\Include\Spine-Sprite-ForwardPass-URP.hlsl" />
     <None Include="Assets\Spine\Runtime\spine-unity\Shaders\SkeletonGraphic\Spine-SkeletonGraphic-Multiply.shader" />
   </ItemGroup>
   <ItemGroup>

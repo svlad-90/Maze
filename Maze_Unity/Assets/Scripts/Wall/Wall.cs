@@ -4,6 +4,8 @@ using UnityEngine;
 using Maze_Common;
 using Draw2DShapesLite;
 using System;
+using UnityEngine.Experimental.Rendering.Universal;
+using Maze_ShadowCasterFromCollider;
 
 namespace Maze_Wall
 {
@@ -39,6 +41,7 @@ namespace Maze_Wall
 
         private PolygonCollider2D mPolygonCollider2DComp;
         private Rigidbody2D mRigidBody;
+        private ShadowCaster2D mShadowCaster2D;
 
         private Draw2D mGraphics;
 
@@ -60,6 +63,16 @@ namespace Maze_Wall
                 gameObject.AddComponent<PolygonCollider2D>();
             }
 
+            if (null == GetComponent<ShadowCaster2D>())
+            {
+                gameObject.AddComponent<ShadowCaster2D>();
+            }
+
+            if (null == GetComponent<ShadowCaster2DFromCollider>())
+            {
+                gameObject.AddComponent<ShadowCaster2DFromCollider>();
+            }
+
             mGraphics = GetComponent<Draw2D>();
             mRigidBody = GetComponent<Rigidbody2D>();
 
@@ -69,6 +82,7 @@ namespace Maze_Wall
 
             mPolygonCollider2DComp = GetComponent<PolygonCollider2D>();
             mMeshRenderer = GetComponent<MeshRenderer>();
+            mShadowCaster2D = GetComponent<ShadowCaster2D>();
         }
 
         void Start()
