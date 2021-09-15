@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Pool;
 using Unity.Mathematics;
-using Draw2DShapesLite;
 using Maze_Wall;
 using Maze_MazeGenerator;
 using Maze_Common;
@@ -880,7 +879,7 @@ namespace Maze_MapBuilder
                 for (int row = 0; row < height; ++row)
                 {
                     for (int column = 0; column < width; ++column)
-                            {
+                    {
                         var mapNode = mMapNodes[row][column];
 
                         var leftBottomPoint = getLeftBottompWorldPosition();
@@ -890,14 +889,24 @@ namespace Maze_MapBuilder
 
                         mapNode.Label = new GameObject();
                         mapNode.Label.transform.parent = mParentGameObject.transform;
-                        mapNode.Label.AddComponent<Text>();
+                        mapNode.Label.AddComponent<TextMesh>();
                         mapNode.Label.transform.position = new Vector3(x, y, 0);
+                        mapNode.Label.layer = 12;
+                        mapNode.Label.name = "Map node label: " + mapNode.X.ToString() + ", " + mapNode.Y.ToString();
 
-                        var label = mapNode.Label.GetComponent<Text>();
+                        var label = mapNode.Label.GetComponent<TextMesh>();
 
                         if (null != label)
                         {
                             label.text = mapNode.X.ToString() + ", " + mapNode.Y.ToString();
+                            label.anchor = TextAnchor.MiddleCenter;
+                        }
+
+                        var meshRenderer = mapNode.Label.GetComponent<MeshRenderer>();
+
+                        if(null != meshRenderer)
+                        {
+                            meshRenderer.sortingLayerName = "Debug";
                         }
                     }
                 }
@@ -1451,13 +1460,8 @@ namespace Maze_MapBuilder
             return result;
         }
 
-        public List<ValueTuple<float, float>> formVisiblePolygon(Vector2 point, float radius, Draw2D debugGraphics)
+        public List<ValueTuple<float, float>> formVisiblePolygon(Vector2 point, float radius)
         {
-            if (null != debugGraphics)
-            {
-                debugGraphics.CleanVertices();
-            }
-
             List<ValueTuple<float, float>> result = new List<ValueTuple<float, float>>();
 
             var nodePos = new Vector2();
@@ -1697,11 +1701,6 @@ namespace Maze_MapBuilder
                     var collisionResultTmpInputVec = new Vector2();
                     foreach(var impactingVertex in impactingWallVertices)
                     {
-                        if (null != debugGraphics)
-                        {
-                            debugGraphics.vertices.Add(new Vector3(impactingVertex.Item1, impactingVertex.Item2, 0));
-                        }
-
                         collisionResultTmpInputVec.x = impactingVertex.Item1;
                         collisionResultTmpInputVec.y = impactingVertex.Item2;
                         var collisionResult = raycast(point, collisionResultTmpInputVec);
@@ -1743,8 +1742,6 @@ namespace Maze_MapBuilder
                             }
                         }
                     }
-
-                    debugGraphics.MakeMesh();
                 }
                 else
                 {
@@ -1987,11 +1984,11 @@ namespace Maze_MapBuilder
             throw new System.Exception("[MapBuilder][tileToPoint]: Error! mMap == null!");
         }
 
-        public List<ValueTuple<float, float>> formVisiblePolygon(Vector2 point, float radius, Draw2D debugGraphics = null)
+        public List<ValueTuple<float, float>> formVisiblePolygon(Vector2 point, float radius)
         {
             if (null != mMap)
             {
-                return mMap.formVisiblePolygon(point, radius, debugGraphics);
+                return mMap.formVisiblePolygon(point, radius);
             }
 
             throw new System.Exception("[MapBuilder][formVisiblePolygon]: Error! mMap == null!");

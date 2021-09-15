@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEditor;
 using Maze_Wall;
 using UnityEditor.SceneManagement;
-using Draw2DShapesLite;
 
 [CustomEditor(typeof(Maze_Wall.Wall))]
 [CanEditMultipleObjects]

@@ -26,14 +26,14 @@ namespace Maze_PlayerCursor
         private Maze_EasyReference.EasyReference mEasyReference;
 
         private Vector2 mGridPosition = new Vector2(0, 0);
-        public Subject<Vector2> GridPosition
+        public Vector2 GridPosition
         {
-            get => GridPosition;
+            get => mGridPosition;
             protected set
             {
-                if (false == GridPosition.Equals(value))
+                if (false == mGridPosition.Equals(value))
                 {
-                    GridPosition = value;
+                    mGridPosition = value;
                     mCursorPlayerGridPositionSubject.notify(new CursorPlayerGridPositionContext(mGridPosition, this));
                 }
             }
@@ -121,6 +121,12 @@ namespace Maze_PlayerCursor
                 float angleDeg = Common.signAngle(eyeDirection2D, lookAtVec);
 
                 gameObject.transform.eulerAngles = new Vector3(0, 0, angleDeg);
+            }
+
+            if (null != MapBuilder)
+            {
+                var newGridPosition = MapBuilder.pointToTile(Common.toVec2(transform.position));
+                GridPosition = newGridPosition;
             }
         }
     }

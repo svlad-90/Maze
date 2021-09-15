@@ -116,8 +116,6 @@ namespace Maze_Spawner
 
                             var creationPos = mMap.tileToPoint(creationTile);
                             obj.transform.position = new Vector3(creationPos.x, creationPos.y, 0);
-
-                            enemyBase.fadeIn();
                         }
                         else
                         {
