@@ -152,12 +152,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91d82dc5fae8dcd4cafe60fddd5bc76e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mSpawnDelaySec: 0.25
+  mSpawnDelaySec: 0.15
   mPlayer: {fileID: 1688444282}
-  mMinCellDistance: 5
-  mMaxCellDistance: 10
+  mMinCellDistance: 4
+  mMaxCellDistance: 5
   mMap: {fileID: 1848235226}
-  mMaxMonsterNumber: 30
+  mMaxMonsterNumber: 50
 --- !u!4 &1313650732
 Transform:
   m_ObjectHideFlags: 0
@@ -170,7 +170,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1688444280
 GameObject:
@@ -424,7 +424,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -474,8 +474,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd6564da6efc507498d90cf4c03d0ae8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mWidth: 20
-  mHeight: 20
+  mWidth: 50
+  mHeight: 50
   mMapNodeSize: 8
   mFloorPrefab: {fileID: 8100543423605032445, guid: b470f3bc55b3e6446863bee41477c2d8, type: 3}
   mWallPrefab: {fileID: 3793160219850464192, guid: 3114db724ba84d0488d1f61712b96409, type: 3}

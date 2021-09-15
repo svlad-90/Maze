@@ -879,7 +879,7 @@ namespace Maze_MapBuilder
                 for (int row = 0; row < height; ++row)
                 {
                     for (int column = 0; column < width; ++column)
-                            {
+                    {
                         var mapNode = mMapNodes[row][column];
 
                         var leftBottomPoint = getLeftBottompWorldPosition();
@@ -889,14 +889,24 @@ namespace Maze_MapBuilder
 
                         mapNode.Label = new GameObject();
                         mapNode.Label.transform.parent = mParentGameObject.transform;
-                        mapNode.Label.AddComponent<Text>();
+                        mapNode.Label.AddComponent<TextMesh>();
                         mapNode.Label.transform.position = new Vector3(x, y, 0);
+                        mapNode.Label.layer = 12;
+                        mapNode.Label.name = "Map node label: " + mapNode.X.ToString() + ", " + mapNode.Y.ToString();
 
-                        var label = mapNode.Label.GetComponent<Text>();
+                        var label = mapNode.Label.GetComponent<TextMesh>();
 
                         if (null != label)
                         {
                             label.text = mapNode.X.ToString() + ", " + mapNode.Y.ToString();
+                            label.anchor = TextAnchor.MiddleCenter;
+                        }
+
+                        var meshRenderer = mapNode.Label.GetComponent<MeshRenderer>();
+
+                        if(null != meshRenderer)
+                        {
+                            meshRenderer.sortingLayerName = "Debug";
                         }
                     }
                 }

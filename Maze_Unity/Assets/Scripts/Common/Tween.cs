@@ -6,68 +6,91 @@ namespace Maze_Tween
 {
     public class Tween<T>
     {
+        enum eState
+        { 
+            Idle = 0,
+            Running,
+            Finished,
+            Stopped
+        }
+
         public delegate void UpdateCallback(T initialValue, T targetValue, float duration, float durationPassed);
         public delegate void FinishCallback();
+        public delegate void StopCallback();
         private T mInitialValue;
         private T mTargetValue;
         private float mDuration;
         private float mDurationPassed = 0;
         private UpdateCallback mUpdateCallback;
         private FinishCallback mFinishCallback;
-        
-        private bool mIsStarted = false;
-        public bool IsStarted { get => mIsStarted; set => mIsStarted = value; }
+        private StopCallback mStopCallback;
 
-        private bool mIsFinished = false;
-        public bool IsFinished { get => mIsFinished; }
+        private eState mState = eState.Idle;
+        public bool IsRunning { get => mState == eState.Running; }
+        public bool IsFinished { get => mState == eState.Finished; }
+        public bool IsStopped { get => mState == eState.Stopped; }
 
-        public void Start(T initialValue, T targetValue, float duration, UpdateCallback updateCallback, FinishCallback finishCallback)
-        {
-            Stop();
-            
+        public void Start(T initialValue, T targetValue, float duration, UpdateCallback updateCallback, FinishCallback finishCallback = null, StopCallback stopCallback = null)
+        {            
             mInitialValue = initialValue;
             mTargetValue = targetValue;
             mDuration = duration;
+            mDurationPassed = 0;
             mUpdateCallback = updateCallback;
             mFinishCallback = finishCallback;
-            mIsStarted = true;
-            mIsFinished = false;
+            mStopCallback = stopCallback;
+            mState = eState.Running;
         }
 
         public void Stop()
         {
-            mIsStarted = false;
-            mIsFinished = true;
+            if (mState == eState.Running)
+            {
+                mState = eState.Stopped;
+
+                if (null != mStopCallback)
+                {
+                    mStopCallback();
+                }
+            }
+            else
+            {
+                mState = eState.Stopped;
+            }
+
             mDurationPassed = 0;
         }
 
         public void Restart()
         {
             mDurationPassed = 0;
-            mIsFinished = false;
+            mState = eState.Running;
         }
 
         public void Update(float deltaTime)
         {
-            mDurationPassed += deltaTime;
-
-            if (mDurationPassed > mDuration)
+            if (mState == eState.Running)
             {
-                mDurationPassed = mDuration;
-            }
+                mDurationPassed += deltaTime;
 
-            if (null != mUpdateCallback)
-            {
-                mUpdateCallback(mInitialValue, mTargetValue, mDuration, mDurationPassed);
-            }
-
-            if (mDurationPassed >= mDuration)
-            {
-                mIsFinished = true;
-
-                if (null != mFinishCallback)
+                if (mDurationPassed > mDuration)
                 {
-                    mFinishCallback();
+                    mDurationPassed = mDuration;
+                }
+
+                if (null != mUpdateCallback)
+                {
+                    mUpdateCallback(mInitialValue, mTargetValue, mDuration, mDurationPassed);
+                }
+
+                if (mDurationPassed >= mDuration)
+                {
+                    mState = eState.Finished;
+
+                    if (null != mFinishCallback)
+                    {
+                        mFinishCallback();
+                    }
                 }
             }
         }

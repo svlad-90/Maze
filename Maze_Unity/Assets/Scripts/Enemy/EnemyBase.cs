@@ -123,6 +123,7 @@ namespace Maze_EnemyBase
         private RectTransform mPlayerRectTransform;
         private RectTransform mRectTransform;
         private Tween<Color> mFadeInTween;
+        private bool mShouldFadeIn = false;
 
         private void startFire()
         {
@@ -176,7 +177,9 @@ namespace Maze_EnemyBase
             var idleState = new EnemyFSMState(EnemyFSMStateId.Idle, (EnemyFSMContext context) =>
             {
                 // enter
-                if(null != mRigidBody)
+                mShouldFadeIn = true;
+
+                if (null != mRigidBody)
                 {
                     mRigidBody.Sleep();
                 }
@@ -447,6 +450,7 @@ namespace Maze_EnemyBase
         EnemyBase()
         {
             mFSM = createFSM();
+            mFadeInTween = new Tween<Color>();
         }
 
         // Start is called before the first frame update
@@ -498,28 +502,31 @@ namespace Maze_EnemyBase
 
         void OnCollisionEnter2D(Collision2D collision)
         {
-            var bullet = collision.collider.GetComponent<Maze_BulletBase.BulletBase>();
-
-            if (null != bullet)
+            if (true == mFSM.Initialized)
             {
-                if (true == bullet.IsDamageActive)
+                var bullet = collision.collider.GetComponent<Maze_BulletBase.BulletBase>();
+
+                if (null != bullet)
                 {
-                    bullet.deactivate();
-
-                    mHealth -= bullet.Damage;
-
-                    if (mHealth <= 0)
+                    if (true == bullet.IsDamageActive)
                     {
-                        mFSM.ApplyTransition(EnemyFSMTransitions.To_Death);
+                        bullet.deactivate();
+
+                        mHealth -= bullet.Damage;
+
+                        if (mHealth <= 0)
+                        {
+                            mFSM.ApplyTransition(EnemyFSMTransitions.To_Death);
+                        }
                     }
                 }
-            }
 
-            var wall = collision.collider.GetComponent<Wall>();
+                var wall = collision.collider.GetComponent<Wall>();
 
-            if (null != wall)
-            {
-                mFSM.ApplyTransition(EnemyFSMTransitions.To_BypassObstacleCorner);
+                if (null != wall)
+                {
+                    mFSM.ApplyTransition(EnemyFSMTransitions.To_BypassObstacleCorner);
+                }
             }
         }
 
@@ -591,13 +598,43 @@ namespace Maze_EnemyBase
         {
             if (null != mSkeletonAnimation && null != mSkeletonAnimation.skeleton)
             {
-                //TODO
+                mFadeInTween.Start(new Color(0, 0, 0, 0), new Color(1,1,1,1), 1,
+                (Color initialValue, Color targetValue, float duration, float durationPassed)=>
+                {
+                    if(null != mSkeletonAnimation && null != mSkeletonAnimation.skeleton)
+                    {
+                        mSkeletonAnimation.skeleton.R = initialValue.r + ( (targetValue.r - initialValue.r) * (durationPassed / duration));
+                        mSkeletonAnimation.skeleton.G = initialValue.g + ((targetValue.g - initialValue.g) * (durationPassed / duration));
+                        mSkeletonAnimation.skeleton.B = initialValue.b + ((targetValue.b - initialValue.b) * (durationPassed / duration));
+                        mSkeletonAnimation.skeleton.A = initialValue.a + ((targetValue.a - initialValue.a) * (durationPassed / duration));
+                    }
+                },
+                ()=>
+                {
+                    if (null != mSkeletonAnimation && null != mSkeletonAnimation.skeleton)
+                    {
+                        mSkeletonAnimation.skeleton.R = 1;
+                        mSkeletonAnimation.skeleton.G = 1;
+                        mSkeletonAnimation.skeleton.B = 1;
+                        mSkeletonAnimation.skeleton.A = 1;
+                    }
+                },
+                ()=>
+                {
+                    if (null != mSkeletonAnimation && null != mSkeletonAnimation.skeleton)
+                    {
+                        mSkeletonAnimation.skeleton.R = 1;
+                        mSkeletonAnimation.skeleton.G = 1;
+                        mSkeletonAnimation.skeleton.B = 1;
+                        mSkeletonAnimation.skeleton.A = 1;
+                    }
+                });
             }
         }
 
         void stopFadeIn()
         {
-            //TODO
+            mFadeInTween.Stop();
         }
 
         class Vec2Pair
@@ -811,11 +848,6 @@ namespace Maze_EnemyBase
             }
         }
 
-        private void Awake()
-        {
-            mFadeInTween = new Tween<Color>();
-        }
-
         // Update is called once per frame
         void Update()
         {
@@ -823,6 +855,21 @@ namespace Maze_EnemyBase
             {
                 update_logic();
                 update_HandlingDelayedActions();
+            }
+
+            if(true == mShouldFadeIn)
+            {
+                if(null != mFadeInTween)
+                {
+                    fadeIn();
+                }
+
+                mShouldFadeIn = false;
+            }
+
+            if(null != mFadeInTween)
+            {
+                mFadeInTween.Update(Time.deltaTime);
             }
         }
     }

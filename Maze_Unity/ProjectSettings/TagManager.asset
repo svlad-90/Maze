@@ -17,7 +17,7 @@ TagManager:
   - EnemyBullets
   - PlayerBullets
   - Scene
-  - 
+  - Debug
   - 
   - 
   - 
@@ -49,4 +49,7 @@ TagManager:
     locked: 0
   - name: Walls
     uniqueID: 2268631625
+    locked: 0
+  - name: Debug
+    uniqueID: 954907259
     locked: 0
