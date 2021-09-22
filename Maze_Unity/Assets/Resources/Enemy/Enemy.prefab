@@ -71,7 +71,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4d1f740b4c2279b49870032561d4cb2a, type: 2}
+  - {fileID: 2100000, guid: 86101fb1993d4ee40ba5bb9c0455d445, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -105,7 +105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d247ba06193faa74d9335f5481b2b56c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skeletonDataAsset: {fileID: 11400000, guid: 73049608a91469c4d90079fba97d1372, type: 2}
+  skeletonDataAsset: {fileID: 11400000, guid: 461d87a9a99427c479333ce4533673f2, type: 2}
   initialSkinName: 
   fixPrefabOverrideViaMeshFilter: 0
   initialFlipX: 0
@@ -216,6 +216,7 @@ MonoBehaviour:
   mAcceleration: 30
   mVelocityMax: 30
   mDebug: 0
+  mHealthBarPrefab: {fileID: 1407561109995195025, guid: b18cb6ee7138fa84e8e7553502835e7f, type: 3}
 --- !u!114 &-5322804010732613553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -231,7 +232,7 @@ MonoBehaviour:
   mBulletPrefab: {fileID: 2552035678579562542, guid: a10f2587ba6ae8f45bcbc1d2cae6a728, type: 3}
   mFireRate: 0.5
   mBulletTimeAlive: 2
-  mBulletSpeed: 50
+  mBulletSpeed: 100
   mDamage: 5
   mLayer: 9
   mTarget: {fileID: 0}

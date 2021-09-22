@@ -6,13 +6,12 @@ using Maze_BulletBase;
 using Maze_Observer;
 using UnityEngine.Pool;
 using UnityTimer;
+using Maze_GameManager;
 
 namespace Maze_WeaponBase
 {
     public abstract class WeaponBase : MonoBehaviour
     {
-        private static Dictionary<string, ObjectPool<GameObject>> sBulletPoolMap = new Dictionary<string, ObjectPool<GameObject>>();
-
         [SerializeField]
         private GameObject mBulletPrefab;
         public GameObject BulletPrefab { get => mBulletPrefab; set => mBulletPrefab = value; }
@@ -55,7 +54,7 @@ namespace Maze_WeaponBase
         {
             ObjectPool<GameObject> objectsPool = null;
 
-            if (false == WeaponBase.sBulletPoolMap.TryGetValue(name, out objectsPool))
+            if (false == GameManager.sInstance.BulletPoolMap.TryGetValue(name, out objectsPool))
             {
                 objectsPool = new ObjectPool<GameObject>(
                 createFunc: () => { return Instantiate(mBulletPrefab); },
@@ -80,7 +79,7 @@ namespace Maze_WeaponBase
 
                     obj.SetActive(false);
                 });
-                WeaponBase.sBulletPoolMap.Add(name, objectsPool);
+                GameManager.sInstance.BulletPoolMap.Add(name, objectsPool);
             }
 
             return objectsPool;

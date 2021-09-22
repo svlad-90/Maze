@@ -1,13 +1,13 @@
 {
 "skeleton": {
-	"hash": "UsZyLgHJtc8",
-	"spine": "4.0.24",
+	"hash": "c2QrZGu11tg",
+	"spine": "4.0.33",
 	"x": -134.32,
 	"y": -131.78,
 	"width": 285,
 	"height": 242.83,
 	"images": "",
-	"audio": "C:/Users/Vladyslav/Desktop/spine/soilder"
+	"audio": "D:/Development/Projects/Maze/Maze_Unity/Assets/Art/spine/soldier"
 },
 "bones": [
 	{ "name": "root", "rotation": -90 },
