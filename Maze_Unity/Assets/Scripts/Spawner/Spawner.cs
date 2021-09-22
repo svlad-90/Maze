@@ -45,7 +45,6 @@ namespace Maze_Spawner
         public float MaxMonsterNumber { get => mMaxMonsterNumber; set => mMaxMonsterNumber = value; }
 
         private GameObject mMonster = null;
-        private bool mMonsterLoaded = false;
         private HashSet<GameObject> mMonsters = new HashSet<GameObject>();
         private Timer mSpawnDelayTimer;
 
@@ -98,7 +97,7 @@ namespace Maze_Spawner
 
                             var playerPositionWorldCoord = mPlayer.transform.position;
 
-                            var tileCoord = mMap.pointToTile(Common.toVec2(playerPositionWorldCoord));
+                            var tileCoord = mMap.pointToWalkableTile(Common.toVec2(playerPositionWorldCoord));
 
                             var walkableTiles = mMap.getReachableCells(tileCoord, mMinCellDistance, mMaxCellDistance);
 
@@ -194,7 +193,8 @@ namespace Maze_Spawner
         {
             mMonster = Resources.Load<GameObject>("Enemy/Enemy");
         }
-            void Start()
+
+        void Start()
         {
             if (null != mMonster)
             {

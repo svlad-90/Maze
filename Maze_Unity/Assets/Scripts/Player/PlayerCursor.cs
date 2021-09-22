@@ -80,53 +80,58 @@ namespace Maze_PlayerCursor
             return movementVec;
         }
 
-        public void Update()
+        public new void Update()
         {
-            if (mRigidBody != null)
-            {
-                if (0 != mMoveDirections.Count)
-                {
-                    if (mRigidBody.velocity.x < mVelocityMax ||
-                    mRigidBody.velocity.x > -mVelocityMax)
-                    {
-                        var movementVec = getMovementVec();
-                        movementVec.x *= Time.deltaTime;
-                        movementVec.y = 0;
-                        mRigidBody.AddForce(Common.toVec2(movementVec));
-                    }
+            base.Update();
 
-                    if (mRigidBody.velocity.y < mVelocityMax ||
-                    mRigidBody.velocity.y > -mVelocityMax)
+            if (true == IsAlive())
+            {
+                if (mRigidBody != null)
+                {
+                    if (0 != mMoveDirections.Count)
                     {
-                        var movementVec = getMovementVec();
-                        movementVec.x = 0;
-                        movementVec.y *= Time.deltaTime;
-                        mRigidBody.AddForce(Common.toVec2(movementVec));
+                        if (mRigidBody.velocity.x < mVelocityMax ||
+                        mRigidBody.velocity.x > -mVelocityMax)
+                        {
+                            var movementVec = getMovementVec();
+                            movementVec.x *= Time.deltaTime;
+                            movementVec.y = 0;
+                            mRigidBody.AddForce(Common.toVec2(movementVec));
+                        }
+
+                        if (mRigidBody.velocity.y < mVelocityMax ||
+                        mRigidBody.velocity.y > -mVelocityMax)
+                        {
+                            var movementVec = getMovementVec();
+                            movementVec.x = 0;
+                            movementVec.y *= Time.deltaTime;
+                            mRigidBody.AddForce(Common.toVec2(movementVec));
+                        }
                     }
                 }
-            }
 
-            if (null != mEasyReference)
-            {
-                var mousePosWorldCoord = mEasyReference.GetMousePosition();
+                if (null != mEasyReference)
+                {
+                    var mousePosWorldCoord = mEasyReference.GetMousePosition();
 
-                var nodeWorldCoord = gameObject.transform.position;
+                    var nodeWorldCoord = gameObject.transform.position;
 
-                Vector2 lookAtVec = new Vector2();
+                    Vector2 lookAtVec = new Vector2();
 
-                lookAtVec.x = mousePosWorldCoord.x - nodeWorldCoord.x;
-                lookAtVec.y = mousePosWorldCoord.y - nodeWorldCoord.y;
+                    lookAtVec.x = mousePosWorldCoord.x - nodeWorldCoord.x;
+                    lookAtVec.y = mousePosWorldCoord.y - nodeWorldCoord.y;
 
-                var eyeDirection2D = new Vector2(mEyesDirection.x, mEyesDirection.y);
-                float angleDeg = Common.signAngle(eyeDirection2D, lookAtVec);
+                    var eyeDirection2D = new Vector2(mEyesDirection.x, mEyesDirection.y);
+                    float angleDeg = Common.signAngle(eyeDirection2D, lookAtVec);
 
-                gameObject.transform.eulerAngles = new Vector3(0, 0, angleDeg);
-            }
+                    gameObject.transform.eulerAngles = new Vector3(0, 0, angleDeg);
+                }
 
-            if (null != MapBuilder)
-            {
-                var newGridPosition = MapBuilder.pointToTile(Common.toVec2(transform.position));
-                GridPosition = newGridPosition;
+                if (null != MapBuilder)
+                {
+                    var newGridPosition = MapBuilder.pointToTile(Common.toVec2(transform.position));
+                    GridPosition = newGridPosition;
+                }
             }
         }
     }

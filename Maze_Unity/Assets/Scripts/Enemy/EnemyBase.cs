@@ -12,6 +12,7 @@ using Maze_MapBuilder;
 using Maze_Observer;
 using Maze_Wall;
 using Maze_Tween;
+using Maze_Bar;
 
 namespace Maze_EnemyBase
 {
@@ -89,6 +90,15 @@ namespace Maze_EnemyBase
 
         [SerializeField]
         bool mDebug = false;
+
+        [SerializeField]
+        private GameObject mHealthBarPrefab;
+
+        private GameObject mHealthBarInstance;
+
+        private Bar mHealthBarComponent;
+        public Bar HealthBar { get => mHealthBarComponent; }
+
         public bool Debug { get => mDebug; set => mDebug = value; }
 
         private Subject<DestroyEnemyContext>  mDestroyEnemySubject = new Subject<DestroyEnemyContext>();
@@ -169,6 +179,11 @@ namespace Maze_EnemyBase
                 mSkeletonAnimation.state.Complete -= mHandleDeathAnimationEnding;
                 mHandleDeathAnimationEnding = null;
             }
+        }
+
+        private void OnDestroy()
+        {
+            unscheduleAllCallbacks();
         }
 
         EnemyFSM createFSM()
@@ -456,6 +471,18 @@ namespace Maze_EnemyBase
         // Start is called before the first frame update
         void Start()
         {
+            if(null != mHealthBarPrefab)
+            {
+                mHealthBarInstance = Instantiate(mHealthBarPrefab);
+
+                if(null != mHealthBarInstance)
+                {
+                    mHealthBarInstance.transform.position = transform.position + new Vector3(0, 2.0f, 0);
+                    mHealthBarInstance.transform.SetParent(transform.parent);
+                    mHealthBarComponent = mHealthBarInstance.GetComponent<Bar>();
+                }
+            }
+            
             mRectTransform = GetComponent<RectTransform>();
             mRigidBody = GetComponent<Rigidbody2D>();
             mCircleCollider = GetComponent<CircleCollider2D>();
@@ -463,6 +490,11 @@ namespace Maze_EnemyBase
             mMeshRenderer = GetComponent<MeshRenderer>();
 
             mInitalHealth = mHealth;
+
+            if (null != mHealthBarComponent)
+            {
+                mHealthBarComponent.SetValue(mHealth / mInitalHealth * 100);
+            }
 
             if (null != mPlayerInFocus)
             {
@@ -485,6 +517,7 @@ namespace Maze_EnemyBase
             if (true == mReused)
             {
                 mHealth = mInitalHealth;
+
                 mFSM.restart();
                 mFSM.ApplyTransition(EnemyFSMTransitions.To_Idle);
                 mFSM.ApplyTransition(EnemyFSMTransitions.To_BypassObstacle);
@@ -513,9 +546,15 @@ namespace Maze_EnemyBase
                         bullet.deactivate();
 
                         mHealth -= bullet.Damage;
+                        
+                        if(null != mHealthBarComponent)
+                        {
+                            mHealthBarComponent.SetValue(mHealth / mInitalHealth * 100);
+                        }
 
                         if (mHealth <= 0)
                         {
+                            mHealth = 0;
                             mFSM.ApplyTransition(EnemyFSMTransitions.To_Death);
                         }
                     }
@@ -579,7 +618,7 @@ namespace Maze_EnemyBase
         {
             if (null != mMap && null != mPlayerInFocus)
             {
-                mPathToPlayer = mMap.findPath(mMap.pointToTile(Common.toVec2(transform.position)), mMap.pointToTile(Common.toVec2(mPlayerInFocus.transform.position)));
+                mPathToPlayer = mMap.findPath(mMap.pointToTile(Common.toVec2(transform.position)), mMap.pointToWalkableTile(Common.toVec2(mPlayerInFocus.transform.position)));
 
                 if (true == mDebug)
                 {
@@ -848,9 +887,30 @@ namespace Maze_EnemyBase
             }
         }
 
+        void OnEnable()
+        {
+            if(null != mHealthBarInstance)
+            {
+                mHealthBarInstance.SetActive(true);
+            }
+        }
+
+        void OnDisable()
+        {
+            if (null != mHealthBarInstance)
+            {
+                mHealthBarInstance.SetActive(false);
+            }
+        }
+
         // Update is called once per frame
         void Update()
         {
+            if(null != mHealthBarInstance)
+            {
+                mHealthBarInstance.transform.position = transform.position + new Vector3(0, 2.0f, 0);
+            }
+
             if (true == gameObject.activeSelf)
             {
                 update_logic();
@@ -862,6 +922,11 @@ namespace Maze_EnemyBase
                 if(null != mFadeInTween)
                 {
                     fadeIn();
+                }
+
+                if (null != mHealthBarComponent)
+                {
+                    mHealthBarComponent.SetValue(mHealth / mInitalHealth * 100);
                 }
 
                 mShouldFadeIn = false;

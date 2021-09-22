@@ -120,6 +120,22 @@ namespace Maze_MapBuilder
             return 1;
         }
 
+        public List<MapNode> get8Neighbours()
+        {
+            List<MapNode> result = new List<MapNode>();
+
+            if (mTopSibling != null) { result.Add(mTopSibling); }
+            if (mTopSibling != null && mTopSibling.mRightSibling != null) { result.Add(mTopSibling.mRightSibling); }
+            if (mRightSibling != null) { result.Add(mRightSibling); }
+            if (mRightSibling != null && mRightSibling.mBottomSibling != null) { result.Add(mRightSibling.mBottomSibling); }
+            if (mBottomSibling != null) { result.Add(mBottomSibling); }
+            if (mBottomSibling != null && mBottomSibling.mLeftSibling != null) { result.Add(mBottomSibling.mLeftSibling); }
+            if (mLeftSibling != null) { result.Add(mLeftSibling); }
+            if (mLeftSibling != null && mLeftSibling.mTopSibling != null) { result.Add(mLeftSibling.mTopSibling); }
+
+            return result;
+        }
+
         public Dictionary<eNeighbourType, MapNode> getAllNotVisitedNeighbours()
         {
             Dictionary<eNeighbourType, MapNode> neighbours = new Dictionary<eNeighbourType, MapNode>();
@@ -450,6 +466,47 @@ namespace Maze_MapBuilder
             return result;
         }
 
+        public void pointToWalkableTileOut(Vector2 point, ref Vector2Int result)
+        {
+            pointToTileOut(point, ref result);
+
+            if(false == mMapNodes[result.y][result.x].IsWalkable)
+            {
+                // let's try to shift the result to the nearest walkable node
+                MapNode targetNode = null;
+                var minLength = 0.0f;
+
+                var neighbours = mMapNodes[result.y][result.x].get8Neighbours();
+
+                foreach(var neighbour in neighbours)
+                {
+                    if(true == neighbour.IsWalkable)
+                    {
+                        var coord = tileToPoint(neighbour.TileCoord);
+                        var length = (coord - point).magnitude;
+
+                        if(length < minLength || minLength == 0)
+                        {
+                            targetNode = neighbour;
+                            minLength = length;
+                        }
+                    }
+                }
+
+                if (null != targetNode)
+                {
+                    result = targetNode.TileCoord;
+                }
+            }
+        }
+
+        public Vector2Int pointToWalkableTile(Vector2 point)
+        {
+            Vector2Int result = new Vector2Int();
+            pointToWalkableTileOut(point, ref result);
+            return result;
+        }
+
         public void tileToPointOut(Vector2Int tile, ref Vector2 result)
         {
             try
@@ -569,7 +626,6 @@ namespace Maze_MapBuilder
 
                     actionOnGet = (GameObject obj) =>
                     {
-                        obj.SetActive(true);
                     };
                     break;
                 case ePoolType.Wall:
@@ -584,8 +640,8 @@ namespace Maze_MapBuilder
                             if (wall != null)
                             {
                                 wall.Dimensions = new Vector2(mMapNodeSize, mMapNodeSize);
-                                wall.ExcludeFromCenterFactor = 0.9f;
-                                wall.NumberOfVertices = 25;
+                                wall.ExcludeFromCenterFactor = 0.7f;
+                                wall.NumberOfVertices = 30;
                                 wall.generateVertices();
                             }
                             else
@@ -603,7 +659,6 @@ namespace Maze_MapBuilder
 
                     actionOnGet = (GameObject obj) =>
                     {
-                        obj.SetActive(true);
                     };
                     break;
             }
@@ -615,9 +670,6 @@ namespace Maze_MapBuilder
                 actionOnGet: actionOnGet,
                 actionOnRelease: (GameObject obj) =>
                 {
-                    // TODO
-
-                    obj.SetActive(false);
                 });
                 mGameObjectPoolMap.Add(name, objectsPool);
             }
@@ -658,7 +710,7 @@ namespace Maze_MapBuilder
                     }
                 }
 
-                if (null != mFloorPrefab)
+                if (null == mapNode.FloorObject)
                 {
                     GameObject floorNodeInstance;
 
@@ -739,7 +791,7 @@ namespace Maze_MapBuilder
                 var topLeftTileCoord = pointToTile(topLeftPoint);
                 var bottomRightTileCoord = pointToTile(bottomRightPoint);
 
-                int additionalRange = 3;
+                int additionalRange = 2;
 
                 var newVisibleRect = new RectInt(topLeftTileCoord.x - additionalRange, topLeftTileCoord.y - additionalRange, bottomRightTileCoord.x - topLeftTileCoord.x + additionalRange * 2, bottomRightTileCoord.y - topLeftTileCoord.y + additionalRange * 2);
                 newVisibleRect = normalizeRect(newVisibleRect);
@@ -1962,6 +2014,26 @@ namespace Maze_MapBuilder
             }
 
             throw new System.Exception("[MapBuilder][pointToTile]: Error! mMap == null!");
+        }
+
+        public Vector2Int pointToWalkableTile(Vector2 point)
+        {
+            if (null != mMap)
+            {
+                return mMap.pointToWalkableTile(point);
+            }
+
+            throw new System.Exception("[MapBuilder][pointToWalkableTile]: Error! mMap == null!");
+        }
+
+        public void pointToWalkableTileOut(Vector2 point, ref Vector2Int result)
+        {
+            if (null != mMap)
+            {
+                mMap.pointToWalkableTileOut(point, ref result);
+            }
+
+            throw new System.Exception("[MapBuilder][pointToWalkableTileOut]: Error! mMap == null!");
         }
 
         public void tileToPointOut(Vector2Int tile, ref Vector2 result)

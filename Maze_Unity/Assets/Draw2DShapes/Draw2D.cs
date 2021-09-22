@@ -59,7 +59,15 @@ namespace Draw2DShapesLite
             if (this == null)
                 return;
 
-            mesh = new Mesh();
+            if (null == mesh)
+            {
+                mesh = new Mesh();
+            }
+            else
+            {
+                mesh.Clear(false);
+            }
+
             triangles.Clear();
 
             //2D points for the Polygon collider
@@ -79,7 +87,6 @@ namespace Draw2DShapesLite
             mesh.triangles = indices;
             mesh.RecalculateBounds();
             mesh.RecalculateNormals();
-            
 
             MeshFilter filter = GetComponent<MeshFilter>();
             MeshRenderer renderer = GetComponent<MeshRenderer>();
