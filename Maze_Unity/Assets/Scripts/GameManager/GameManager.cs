@@ -16,7 +16,16 @@ namespace Maze_GameManager
         // Start is called before the first frame update
         void Awake()
         {
-            sInstance = this;
+            if (null == sInstance)
+            {
+                DontDestroyOnLoad(gameObject);
+                sInstance = this;
+            }
+            else
+            {
+                sInstance.mBulletPoolMap.Clear();
+                Destroy(this.gameObject);
+            }
         }
     }
 }

@@ -66,6 +66,16 @@ namespace Maze_PlayerBase
         public MapBuilder MapBuilder { get => mMapBuilder; }
 
         [SerializeField]
+        private AudioClip mShotHitsAudioClip;
+        public AudioClip ShotHitsAudioClip { get => mShotHitsAudioClip; set => mShotHitsAudioClip = value; }
+
+        [SerializeField]
+        private AudioClip mDeathAudioClip;
+        public AudioClip DeathHitsAudioClip { get => mDeathAudioClip; set => mDeathAudioClip = value; }
+
+        private AudioSource mAudio;
+
+        [SerializeField]
         private Light2D mTorchlight;
         public Light2D Torchlight { get => mTorchlight; }
         private Tween<float> mTorchlightTween = new Tween<float>();
@@ -102,6 +112,22 @@ namespace Maze_PlayerBase
 
         private bool mIsTurnOffCollision = false;
         private PolygonCollider2D mPolygonCollider = null;
+
+        protected void playShotHitsSound()
+        {
+            if (null != mAudio && null != mShotHitsAudioClip)
+            {
+                mAudio.PlayOneShot(mShotHitsAudioClip);
+            }
+        }
+
+        protected void playDeathSound()
+        {
+            if (null != mAudio && null != mDeathAudioClip)
+            {
+                mAudio.PlayOneShot(mDeathAudioClip);
+            }
+        }
 
         public PlayerBase()
         {
@@ -194,6 +220,7 @@ namespace Maze_PlayerBase
                 if (mSkeletonAnimation != null)
                 {
                     mSkeletonAnimation.state.SetAnimation(0, "death", false);
+                    playDeathSound();
 
                     mHandleDeathAnimationEnding = (Spine.TrackEntry x) =>
                     {
@@ -391,6 +418,7 @@ namespace Maze_PlayerBase
                 {
                     bullet.deactivate();
 
+                    playShotHitsSound();
                     mHealth -= bullet.Damage;
 
                     if (null != mHealthBarComponent)
@@ -410,6 +438,8 @@ namespace Maze_PlayerBase
         // Start is called before the first frame update
         public void Start()
         {
+            mAudio = GetComponent<AudioSource>();
+
             mInitalHealth = mHealth;
 
             if (null != mHealthBarPrefab)

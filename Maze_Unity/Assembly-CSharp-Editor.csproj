@@ -818,10 +818,6 @@
       <Project>{82B724D4-ACC0-5FAC-C623-D985D4DE777B}</Project>
       <Name>spine-unity-editor</Name>
     </ProjectReference>
-    <ProjectReference Include="Uween.Runtime.csproj">
-      <Project>{039133DF-EF0D-2BC6-314A-D5BC7C0D2A5B}</Project>
-      <Name>Uween.Runtime</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
