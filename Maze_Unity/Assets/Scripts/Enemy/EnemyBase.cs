@@ -94,6 +94,16 @@ namespace Maze_EnemyBase
         [SerializeField]
         private GameObject mHealthBarPrefab;
 
+        [SerializeField]
+        private AudioClip mShotHitsAudioClip;
+        public AudioClip ShotHitsAudioClip { get => mShotHitsAudioClip; set => mShotHitsAudioClip = value; }
+
+        [SerializeField]
+        private AudioClip mDeathAudioClip;
+        public AudioClip DeathHitsAudioClip { get => mDeathAudioClip; set => mDeathAudioClip = value; }
+
+        private AudioSource mAudio;
+
         private GameObject mHealthBarInstance;
 
         private Bar mHealthBarComponent;
@@ -134,6 +144,22 @@ namespace Maze_EnemyBase
         private RectTransform mRectTransform;
         private Tween<Color> mFadeInTween;
         private bool mShouldFadeIn = false;
+
+        protected void playShotHitsSound()
+        {
+            if (null != mAudio && null != mShotHitsAudioClip)
+            {
+                mAudio.PlayOneShot(mShotHitsAudioClip);
+            }
+        }
+
+        protected void playDeathSound()
+        {
+            if (null != mAudio && null != mDeathAudioClip)
+            {
+                mAudio.PlayOneShot(mDeathAudioClip);
+            }
+        }
 
         private void startFire()
         {
@@ -328,6 +354,7 @@ namespace Maze_EnemyBase
                 if (mSkeletonAnimation != null)
                 {
                     mSkeletonAnimation.state.SetAnimation(0, "death", false);
+                    playDeathSound();
 
                     mHandleDeathAnimationEnding = (Spine.TrackEntry x) =>
                     {
@@ -471,7 +498,9 @@ namespace Maze_EnemyBase
         // Start is called before the first frame update
         void Start()
         {
-            if(null != mHealthBarPrefab)
+            mAudio = GetComponent<AudioSource>();
+
+            if (null != mHealthBarPrefab)
             {
                 mHealthBarInstance = Instantiate(mHealthBarPrefab);
 
@@ -545,6 +574,7 @@ namespace Maze_EnemyBase
                     {
                         bullet.deactivate();
 
+                        playShotHitsSound();
                         mHealth -= bullet.Damage;
                         
                         if(null != mHealthBarComponent)

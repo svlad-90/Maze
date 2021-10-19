@@ -36,6 +36,12 @@ namespace Maze_WeaponBase
         private int mLayer = 0;
         public int Layer { get => mLayer; set => mLayer = value; }
 
+        [SerializeField]
+        private AudioClip mShotAudioClip;
+        public AudioClip ShotAudioClip { get => mShotAudioClip; set => mShotAudioClip = value; }
+
+        private AudioSource mAudio;
+
         protected Maze_EasyReference.EasyReference mEasyReference;
         private bool mFireOn = false;
 
@@ -128,19 +134,30 @@ namespace Maze_WeaponBase
             }
         }
 
+        protected void playShotSound()
+        {
+            if(null != mAudio && null != mShotAudioClip)
+            {
+                mAudio.PlayOneShot(mShotAudioClip);
+            }
+        }
+
         protected abstract void actualFire();
 
         private void scheduleFire()
         {
             if (true == mFireAllowed)
             {
+                playShotSound();
                 actualFire();
+
                 mFireAllowed = false;
 
                 mTimer = UnityTimer.Timer.Register(mFireRate, () =>
                 {
                     if (true == mFireOn)
                     {
+                        playShotSound();
                         actualFire();
                     }
 
@@ -175,6 +192,7 @@ namespace Maze_WeaponBase
         void Start()
         {
             mEasyReference = new Maze_EasyReference.EasyReference(gameObject);
+            mAudio = GetComponent<AudioSource>();
 
             mDestroyBulletObserver.setObserverCallback((Maze_BulletBase.DestroyBulletContext data) => 
             {

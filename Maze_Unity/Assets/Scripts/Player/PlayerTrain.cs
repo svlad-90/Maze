@@ -47,14 +47,16 @@ namespace Maze_PlayerTrain
         }
 
         // Start is called before the first frame update
-        new void Start()
+        public new void Start()
         {
             base.Start();
         }
 
         // Update is called once per frame
-        void Update()
+        new void Update()
         {
+            base.Update();
+
             var deltaTime = Time.deltaTime;
 
             if (mRigidBody != null)
